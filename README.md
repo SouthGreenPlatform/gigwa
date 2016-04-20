@@ -79,5 +79,5 @@ A default administrator is defined with the username gigwadmin. You may define o
 
 As for the non-secure mode, it can be briefly described by the fact that it provides no login/logout functionality, and that it therefore treats any user as an administrator.
 
-![Gigwa menu icons](/gigwa_icons.png "Gigwa menu icons")
+![Gigwa menu icons](gigwa_icons.png "Gigwa menu icons")
 
