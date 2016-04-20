@@ -2,3 +2,8 @@
 /build.xml
 /build/
 /.externalToolBuilders
+/WebContent/WEB-INF/web.xml
+/WebContent/WEB-INF/applicationContext-data.xml
+/src/config.properties
+/src/datasources.properties
+/src/users.properties
