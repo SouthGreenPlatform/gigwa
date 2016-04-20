@@ -8,8 +8,8 @@ Try Gigwa online with public datasets at http://gigwa.southgreen.fr/
 
 The source code is available in this repository in the structure of an Eclipse "dynamic web project". It uses Maven for dependency management and requires the following dependencies to be present in your workspace :
 
-https://github.com/SouthGreenPlatform/mgdb
-https://github.com/SouthGreenPlatform/mgdb_export
+####https://github.com/SouthGreenPlatform/mgdb
+####https://github.com/SouthGreenPlatform/mgdb_export
 
 ## Administration guide
 ### 1/ Prerequisites
