@@ -1,9 +1,15 @@
 # gigwa
 
-Gigwa was mainly developed to manage genomic and genotyping data from NGS analyses. Gigwa is a tool targeted at users with little computer expertise, providing means to explore visually large amounts of genotyping data by filtering it based not only on variant features including functional annotations, but also on genotypes themselves. It also offers several popular export formats and a density chart visualizer.
+Gigwa aims at managing genomic and genotyping data from NGS analyses. It is a tool targeted at users with little computer expertise, providing means to explore visually large amounts of genotyping data by filtering it based not only on variant features including functional annotations, but also on genotypes themselves. It also offers several popular export formats and a density chart visualizer.
 
 Try Gigwa online with public datasets at http://gigwa.southgreen.fr/
 
+##Developer instructions
+
+The source code is available in this repository in the structure of an Eclipse "dynamic web project". It uses Maven for dependency management and requires the following dependencies to be present in your workspace :
+
+https://github.com/SouthGreenPlatform/mgdb
+https://github.com/SouthGreenPlatform/mgdb_export
 
 ## Administration guide
 ### 1/ Prerequisites
@@ -74,3 +80,4 @@ A default administrator is defined with the username gigwadmin. You may define o
 As for the non-secure mode, it can be briefly described by the fact that it provides no login/logout functionality, and that it therefore treats any user as an administrator.
 
 ![Gigwa menu icons](/gigwa_icons.png "Gigwa menu icons")
+
