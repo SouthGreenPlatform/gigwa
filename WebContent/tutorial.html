@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	<link media="screen" type="text/css" href="tutorial_files/main.css" rel="StyleSheet">
+	<title>Gigwa Tutorial</title>
+</head>
+
+<body style="margin:0; padding:0;">
+
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:100px;">
+	<div style="margin:20px;">
+	 	<h2>Selection of a reference genome</h2>
+		<img src="tutorial_files/refseq_options.png" style="border:3px outset #888888; padding:2px; margin-right:40px;" align="left">
+		<div style="margin-top:10px; font-size:12px;">
+		This menu allows to select a reference sequence. This can be a genome (chromosomes, scaffolds) or transcriptome (genes, contigs) reference.
+		</div>
+	</div>
+	</div>
+</div>
+
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:100px;">
+	<div style="margin:20px;">
+	 	<h2>Selection of a project</h2>
+		<img src="tutorial_files/projects_selection.png" style="border:3px outset #888888; padding:2px; margin-right:40px;" align="left">
+		<div style="margin-top:10px; font-size:12px;">
+		User then has to select a project based on this reference assembly.
+		</div>
+	</div>
+	</div>
+</div>
+
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:300px;">
+	<div style="margin:20px;">
+	 	<h2>Selection of sequences and individuals</h2>
+		<img src="tutorial_files/seq_ind_selection.png" style="border:3px outset #888888; padding:2px; margin-right:40px;" height="233px" align="left">
+		<div style="margin-top:10px; font-size:12px;">
+		This section allows to select both reference sequences and individuals among those found in the current project.
+		The variant search will be restricted to the selected reference sequences and subset of individuals.
+		</div>
+
+		<div style="margin-top:10px; font-size:12px;">
+		It also provides means to restrict searches to certain types of variants (SNPs, INDELs) among those that exist in the project.
+		</div>
+
+		<div style="margin-top:10px; font-size:12px;">
+		By default (if nothing is selected), the query will consider that all items must be taken into account for the analysis.
+		</div>
+	</div>
+	</div>
+</div>
+
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:320px;">
+	<div style="margin:30px;">
+	 	<h2>Predefined queries</h2>
+		<img src="tutorial_files/predefined_situations.png" style="border:3px outset #888888; padding:2px; margin-right:40px;" height="193px" align="left">
+		<div style="margin-top:10px; font-size:12px;">
+		Users are offered to choose between predefined queries corresponding to various scenarios:
+		<ul>
+			<li><b>Any</b>: This will return all variants whithout applying any filters</li>
+			<li><b>Not all same</b>: This will return variants where not all selected individuals have the same genotype</li>
+			<li><b>All same</b>: This will return variants where all selected individuals have the same genotype</li>
+			<li><b>All different</b>: This will return variants where none of the selected individuals have the same genotype</li>
+			<li><b>Not all different</b>: This will return variants where some of the selected individuals have the same genotypes</li>
+			<li><b>All homozygous Ref</b>: This will return variants where selected individuals are all homozygous with the reference allele</li>
+			<li><b>At least one Homozygous Ref</b>: This will return variants where selected individuals are at least one homozygous with the reference allele</li>
+			<li><b>All homozygous Var</b>: This will return variants where selected individuals are all homozygous with an alternate allele</li>
+			<li><b>At least one Homozygous Var</b>: This will return variants where selected individuals are at least one homozygous with an alternate allele</li>
+			<li><b>All Heterozygous</b>: This will return variants where selected individuals are all heterozygous</li>
+			<li><b>At least one Heterozygous</b>: This will return variants where selected individuals are at least one heterozygous</li>
+			<li><b>With abnormal heterozygosity</b>: This will return variants where each allele found in heterozygous genotypes is also found in homozygous ones</li>
+		</ul>
+		</div>
+	</div>
+	</div>
+</div>
+
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:210px;">
+	<div style="margin:20px;">
+	 	<h2>Variant filters</h2>
+		<img src="tutorial_files/filters.png" style="height:134px; border:3px outset #888888; padding:2px; margin-right:40px;" align="left">
+		<div style="margin-top:20px; font-size:12px;">
+		Minimum genotype quality and read depth filters can be applied within the search. If one of those values is below the specified threshold for an individual, its genotype is treated as missing data.
+		<br><br>
+		Authorized missing data ratio threshold allows to discard positions showing too many missing data points.
+		<br><br>
+		Variants may also be filtered by entering minimum and/or maximum values for MAF (Minor Allele Frequency), or for site-position on the reference sequences.
+		</div>
+	</div>
+	</div>
+</div>
+
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:200px;">
+	<div style="margin:20px;">
+	 	<h2>Effect filters</h2>
+		<img src="tutorial_files/gene_and_effect_filters.png" style="height:125px; border:3px outset #888888; padding:2px; margin-right:40px;" align="left">
+		<div style="margin-top:20px; font-size:12px;">
+		Variants can be filtered by their annotation in the genome and the predicted effect obtained by the SnpEff program. 
+		<br><br>
+		In addition, user can also provide a list of genes (comma-separated gene names) to restrict the search.
+		</div>
+	</div>
+	</div>
+</div>
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee; width:100%; height:110px;">
+	<div style="margin:20px;">
+	 	<h2>Progress indicator</h2>
+		<img src="tutorial_files/progress.png" style="border:3px outset #888888; padding:2px; margin-right:40px;" align="left">
+		<div style="margin-top:15px; font-size:12px;">
+		This area becomes active when a variant search or export is going on, and displays progress indicators about that process.
+		</div>
+	</div>
+	</div>
+</div>
+<div style="background-color:#ffffff; width:940px; border:0px solid gray; margin-left:auto; margin-right:auto;">
+	<div style="border-bottom:5px solid #ddeeee;width:100%; height:220px;">
+	<div style="margin:20px;">
+	 	<h2>Data export</h2>
+		<img src="tutorial_files/exports.png" style="border:3px outset #888888; padding:2px; margin-right:40px;" align="left">
+		<div style="margin-top:0px; font-size:12px;">
+		Various popular formats are offered for exporting the resulting genotyping matrix (Hapmap, VCF, PLINK...)
+		<br><br>
+		A link providing information about the selected format may be displayed by clicking on the question-mark icon.
+		</div>
+	</div>
+	</div>
+</div>
+
+</body>
+</html>

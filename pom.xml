@@ -1,0 +1,149 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.cirad</groupId>
+	<artifactId>gigwa</artifactId>
+	<name>GIGWA</name>
+	<version>1.0-RELEASE</version>
+	<description>
+  </description>
+	<developers>
+		<developer>
+			<name>Guilhem SEMPERE</name>
+		</developer>
+	</developers>
+
+	<dependencies>
+
+		<dependency> 
+			<groupId>fr.cirad</groupId>
+			<artifactId>mgdb</artifactId>
+			<version>1.0-RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.cirad</groupId>
+			<artifactId>mgdb_export</artifactId>
+		    <version>1.0-RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+	 	
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>4.2.5.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<version>3.2.6.RELEASE</version>
+		    <exclusions>
+			    <exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-aop</artifactId>
+	  	        </exclusion>
+	  	        <exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-jdbc</artifactId>
+	  	        </exclusion>
+	  	        <exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-tx</artifactId>
+	  	        </exclusion>
+		    </exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>3.2.6.RELEASE</version>
+		    <exclusions>
+			    <exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-aop</artifactId>
+	  	        </exclusion>
+		    </exclusions>
+		</dependency>
+
+	    <dependency>
+		    <groupId>org.springmodules</groupId>
+		    <artifactId>spring-modules-validation</artifactId>
+		    <version>0.8</version>
+		    <exclusions>
+			    <exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring</artifactId>
+	  	        </exclusion>
+			    <exclusion>
+					<groupId>commons-validator</groupId>
+					<artifactId>commons-validator</artifactId>
+	  	        </exclusion>
+				<exclusion>
+				  <groupId>xml-apis</groupId>
+				  <artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+	    </dependency>
+	    
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		    <version>2.1.0</version>
+		</dependency>
+
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>ibiblio</id>
+			<url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
+		</repository>
+		<repository>
+			<id>FZI Repository</id>
+			<url>http://mavenrepo.fzi.de/semweb4j.org/repo/</url>
+		</repository>
+		<repository>
+			<id>java.net-m2</id>
+			<url>http://download.java.net/maven/2</url>
+		</repository>
+		<repository>
+			<id>xerial</id>
+			<url>http://maven.xerial.org/repository/artifact</url>
+		</repository>
+	</repositories>
+
+	<packaging>pom</packaging>
+	<modules>
+		<module>src/main</module>
+	</modules>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

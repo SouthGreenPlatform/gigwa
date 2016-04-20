@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:secur="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+	
+	<!-- Contents of this file are only used if secure mode has been activated in web.xml -->
+	
+	<secur:http request-matcher="regex" pattern="^.*/Authentication\.jsp.*$" security="none" />
+	<secur:http request-matcher="regex" pattern="^.*/WEB-INF\/jsp\/error\/403\.jsp.*$" security="none" />
+	<secur:http request-matcher="regex" pattern="^.*/css/.*$" security="none" />
+	<secur:http request-matcher="regex" pattern="^.*/img/.*$" security="none" />
+	<secur:http request-matcher="regex" pattern="^.*/js/.*$" security="none" />
+	<secur:http request-matcher="regex" pattern="^.*\/.*filt\/tmpOutput\/.*\.zip.*$" security="none" />
+	<secur:http request-matcher="regex" pattern="^.*\/(gigwa|.*filt)/progressIndicator.json_\?.*$" security="none" />
+	
+	<secur:http realm="GIGwA WebApp Security Administration" request-matcher="regex" access-decision-manager-ref="accessDecisionManager">
+	  <secur:intercept-url pattern="^.*\/gigwa/import\.do(\?.*$|$)" access="ROLE_ADMIN" />
+	  <secur:intercept-url pattern="^.*\/.*filt\/.*\.(do|json)\?.*module=.*(&amp;.*$|$)" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
+	  <secur:intercept-url pattern="^.*\/gigwa/vcfImport\.json\?.*$" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
+
+	  <secur:form-login login-page="/Authentication.jsp" always-use-default-target="true" default-target-url="/gigwa/" />
+	  <secur:access-denied-handler error-page="/WEB-INF/jsp/error/403.jsp" />	 
+	  <secur:logout logout-success-url="/Authentication.jsp" invalidate-session="true" />  
+	</secur:http>
+	
+	<secur:authentication-manager erase-credentials="false">
+	  <secur:authentication-provider user-service-ref='userDetailsService'>
+<!-- 	  	<secur:password-encoder hash="md5" /> -->
+	  </secur:authentication-provider>
+	</secur:authentication-manager>
+	
+	<bean id="userDetailsService" class="fr.cirad.security.ReloadableInMemoryDaoImpl">
+		<property name="resource" value="classpath:users.properties"/>
+	</bean>
+	
+	<bean id="accessDecisionManager" class="org.springframework.security.access.vote.GigwaAccessDecisionManager">
+	   <property name="decisionVoters">
+	       <list>
+	       		<bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+	       		<bean class="org.springframework.security.access.vote.RoleVoter" />
+	       </list>
+	   </property>
+	</bean>
+	
+</beans>

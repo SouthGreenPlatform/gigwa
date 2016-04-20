@@ -1,0 +1,423 @@
+body {
+	margin:5px;
+/* 	overflow-x:hidden; */
+}
+
+body,select,input,th,td,p,div,span,textarea {
+	font-family: Tahoma,Arial;
+	font-size: 10px;
+}
+
+.infobulle {
+	display: none;
+	border: 0;
+	position: absolute;
+	z-index: 500;
+	text-decoration:none;
+	padding: 3px;
+	color: #000;
+	border: 1px solid #bbb;
+	background: #ffc;
+}
+
+.missingData {
+    width: 20px;
+    height:20px;
+    background: #ff0000;
+    position:relative;
+    margin-right:160px;
+    top:15px;
+}
+
+.legende {
+    position:absolue;
+    top:260px;
+    left:460px;
+}
+
+select,input {
+	margin: 0;
+}
+
+img {
+	border: 0;
+}
+
+table.resultTable {
+	border-right: 1px solid #000;
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+
+table.resultTable tr td,table.resultTable tr th {
+	border-left: 1px solid #000;
+	border-bottom: 1px solid #000;
+	padding: 2px;
+	font-size: 10px;
+}
+
+table.resultTable tr th {
+	border-top: 1px solid #000;
+	background-color: #21A32C;
+	color: #fff;
+	font-size: 10px;
+}
+
+table.resultTable tr.selectableTableRow:hover {
+	background-color: lightYellow;
+	cursor: hand;
+	cursor: pointer;
+}
+
+table.adminListTable {
+	border-left: 1px solid #000;
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+
+table.adminListTable tr td,table.adminListTable tr th {
+	border-right: 1px solid #000;
+	border-bottom: 1px solid #000;
+	padding: 1px;
+	font-size: 10px;
+}
+
+table.adminListTable tr th {
+	border-top: 1px solid #000;
+	background-color: #21A32C;
+	color: #fff;
+	font-size: 10px;
+}
+
+ul.pagination li {
+	float: left;
+	display: block;
+	list-style: none outside none;
+	margin: 10px;
+}
+
+a,a:visited {
+	color: #2C21A3;
+	text-decoration: none;
+}
+
+input.moduleButton {
+	margin-left: 10px;
+	margin-top: 50px;
+	font-weight: bold;
+	padding: 5px;
+	background-color: #fff;
+	border: 3px outset #777;
+	cursor: hand;
+	cursor: pointer;
+}
+
+#progressDiv {
+	height:17px;
+/* 	width:380px; */
+	text-align: center;
+	border: 1px dashed #21A32C;
+	font-size: 11px;
+}
+
+.done {
+	margin: 0;
+	width: 400px !important;
+	height: 100px !important;
+}
+
+/* Modal overlay css */
+#ModalOverlay {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	height: 1000px;
+	width: 2000px;
+	margin: 0;
+	padding: 0;
+	background: #000;
+	opacity: .8;
+	filter: alpha(opacity =   80);
+	-moz-opacity: 0.8;
+	display: none;
+	z-index: 10;
+}
+
+#LoadingOverlay {
+	position: absolute;
+	margin: 1px;
+	padding: 0;
+	opacity: .8;
+	filter: alpha(opacity =   80);
+	-moz-opacity: 0.8;
+	display: none;
+	z-index: 10;
+	background-color: #000;
+}
+
+.progressBackground {
+	background: url(../img/progress.gif) 50% 5px no-repeat;
+}
+
+#sorttable_sortfwdind,#sorttable_sortrevind {
+	font-weight: normal;
+}
+
+table.sortable tr th {
+	cursor: hand;
+	cursor: pointer;
+}
+
+div#filterZone {
+	border: 1px dashed #21A32C;
+	min-width: 120px;
+	min-height: 100px;
+}
+
+div#filterZone p {
+	margin-left: 5px;
+}
+
+.cruPageTitle {
+	font-size: 13px;
+	border: 1px dashed #21A32C;
+	text-align: center;
+	height: 20px;
+	padding-top: 2px;
+}
+
+/* Menu format vertical
+#Nav {
+	width: 100px;
+	padding: 0;
+	list-style: none;
+}
+
+#Nav li {
+	background: #ddd;
+	margin: 1px;	
+	height: 20px;
+}
+
+.Menu {
+	padding: 0;		
+	margin-top: -18px;
+	margin-left: 98px;
+	width: 202px;
+	list-style: none;
+	display: none;	
+}
+
+.Menu li {
+	height: 20px;
+	width: 200px;	
+}
+*/
+#Nav {
+	position: absolute;
+	z-index: 100;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+#Nav li {
+	width: 150px;
+	background: #dfd;
+	margin: 0px 0 0 0px;
+	float: left;
+	padding: 0;
+}
+
+#Nav li a {
+	display: block;
+	background-color: #575;
+	color: white;
+	text-decoration: none;
+	margin: 0;
+	padding: 3px;
+}
+
+#Nav li a:hover,#Nav li a:active {
+	display: block;
+	background-color: #797;
+	color: white;
+	text-decoration: none;
+	margin: 0;
+	padding: 3px;
+}
+
+.Menu {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	display: none;
+}
+
+a.moduleButton {
+	background-color: #dfd;
+	padding: 3px;
+	border: 1px outset #474;
+	margin-left: 10px;
+	margin-right: 10px;
+	line-height: 30px;
+	color: #050;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+a.moduleButton:hover {
+	background-color: #ffddff;
+}
+
+.sortableTableHeader {
+	font-weight: bold !important;
+	cursor: pointer;
+}
+
+.selectedSortableTableHeaderActive_desc {
+	text-decoration: underline;
+}
+
+.selectedSortableTableHeaderActive_asc {
+	text-decoration: overline;
+}
+
+.formErrors {
+	display: block;
+	padding: 5px;
+	border: 1px dashed #c44;
+	margin: 10px;
+	width: 350px;
+}
+
+ul#leftMenu {
+	padding-left: 25px;
+}
+
+ul#leftMenu li {
+	margin-top: 10px;
+}
+
+ul#leftMenu li a {
+	padding: 3px;
+	border: 1px dashed #fff;
+}
+
+a.selectedLeftMenuItem {
+	border-color: #000 !important;
+}
+
+.materialTree {
+	width: 800px;
+	height: 540px;
+	margin: 0;
+	border: 1px solid gray;
+	background: white;
+	overflow: auto;
+	font-size:11px;
+}
+
+
+
+
+
+
+div.allele {
+	background-color: white;
+	display: inline-block;
+	border: 1px solid gray;
+	white-space: nowrap;
+	text-align: center;
+	height: 12px;
+	min-width: 15px;
+    max-width: 70px;/* OR as much space that allows */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 1px 1px;
+}
+
+label.required:before {
+    color: #e32;
+    content: '* ';
+    display:inline;
+}
+
+div.populationBox {
+	background-color: #e0e0e0;
+	margin-bottom: 2px;
+	border: 1px solid #808080;
+	text-align:center;
+	cursor: hand;
+	cursor: pointer;
+	color: #2C21A3;
+}
+
+div.highlighted {
+	background-color: lightYellow;
+}
+
+div.datasetSelectionDiv {
+	background-color:#eed;
+	display:none; /* hidden at first */
+	color:#000;
+}
+
+div.displayToggleDiv {
+	float:right;
+	margin-top:-1px;
+	margin-right:2px;
+}
+
+div.displayToggleDiv span {
+	color:#000;
+	font-weight:bold;
+	font-size:15px;
+	font-family:Courier;
+}
+
+td.datasetLabel {
+	padding-left:2px;
+	max-width:405px;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+div.iconMenu {
+	margin-top:-1px;
+	margin-left:-6px;
+	background-color:#dee;
+	padding:2px;
+	border-bottom-right-radius:10px;
+	border:1px solid #888;
+}
+
+div.iconMenu a {
+	margin:3px;
+}
+
+fieldset legend {
+	font-size: 12px;
+	text-transform:uppercase;
+}
+
+fieldset legend span {
+	font-size: 12px;
+	text-transform:none;
+}
+
+.chosen-container {
+	font-size: 11px;
+}
+
+.chosen-container .chosen-results li {
+	line-height: 12px;
+	padding: 3px 3px;
+}
+
+.chosen-container-multi .chosen-choices li.search-choice {
+	padding: 2px 18px 2px 3px;
+}
