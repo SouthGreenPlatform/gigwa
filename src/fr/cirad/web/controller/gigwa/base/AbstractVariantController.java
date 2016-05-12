@@ -1339,7 +1339,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				List<Comparable> genotypeRow = new ArrayList<Comparable>();
 				genotypeRows.put(sampleToIndividualMap.get(sample), genotypeRow);
 				genotypeRow.add(sg.getCode());
-
+				
 				for (String gtInfo : sg.getAdditionalInfo().keySet())
 				{
 					if (!headerCols.contains(gtInfo) /* exclude some fields that we don't want to show */  &&!gtInfo.equals(VariantData.GT_FIELD_PHASED_GT) && !gtInfo.equals(VariantData.GT_FIELD_PHASED_ID) && !gtInfo.equals(VariantRunData.FIELDNAME_ADDITIONAL_INFO_EFFECT_GENE) && !gtInfo.equals(VariantRunData.FIELDNAME_ADDITIONAL_INFO_EFFECT_NAME))
@@ -1347,6 +1347,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 						headerCols.add(gtInfo);
 						headerColDescs.add(vcfHeader != null ? ((VCFFormatHeaderLine) vcfHeader.getmFormatMetaData().get(gtInfo)).getDescription() : "");
 					}
+					if (!headerCols.contains(gtInfo))
+						continue;
+
 					int cellIndex = headerCols.indexOf(gtInfo);
 					while (genotypeRow.size() < cellIndex + 2)
 						genotypeRow.add(null);
