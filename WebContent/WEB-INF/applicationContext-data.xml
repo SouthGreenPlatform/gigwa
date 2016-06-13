@@ -6,10 +6,9 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
  	<!--	Default configuration: definition of a host running locally without authentication enabled -->
- 	<mongo:mongo-client host="localhost" port="27017" id="localMongoHost">
- 		<mongo:client-options write-concern="NORMAL" />
- 	</mongo:mongo-client>
-
+<!--  	<mongo:mongo-client host="localhost" port="27017" id="localMongoHost"> -->
+<!--  		<mongo:client-options write-concern="NORMAL" /> -->
+<!--  	</mongo:mongo-client> -->
 
  	<!--	Definition of a host running remotely without authentication enabled -->
 <!-- 	<mongo:mongo-client host="my.mongo.server1.com" port="27017" id="server1MongoHost"> -->
@@ -37,5 +36,30 @@
 <!-- 	    <constructor-arg name="username" value="XXXXX" /> -->
 <!-- 	    <constructor-arg name="password" value="YYYYY" /> -->
 <!-- 	</bean> -->	
+
+
+ 	<mongo:mongo-client host="mongo-southgreen.cirad.fr" port="37017" id="southgreenMongoHostDEV">
+		<mongo:client-options write-concern="NORMAL" />
+	</mongo:mongo-client>
+
+	<mongo:mongo-client host="mongo-southgreen.cirad.fr" port="27017" id="southgreenMongoHost">
+		<mongo:client-options write-concern="NORMAL" />
+	</mongo:mongo-client>
+	<bean id="southgreenMongoHostCredentials" class="org.springframework.data.authentication.UserCredentials">
+	    <constructor-arg name="username" value="gigwa" />
+	    <constructor-arg name="password" value="91936" />
+	</bean>
+		
+	<mongo:mongo-client host="127.0.0.1" port="27017" id="localMongoHost">
+		<mongo:client-options write-concern="NORMAL" />
+	</mongo:mongo-client>
+	
+	<mongo:mongo-client host="127.0.0.1" port="27018" id="localMongoHostV2">
+		<mongo:client-options write-concern="NORMAL" />
+	</mongo:mongo-client>
+	<bean id="localMongoHostV2Credentials" class="org.springframework.data.authentication.UserCredentials">
+	    <constructor-arg name="username" value="gigwa" />
+	    <constructor-arg name="password" value="91936" />
+	</bean>
 
 </beans>
