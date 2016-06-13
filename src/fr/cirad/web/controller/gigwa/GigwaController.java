@@ -16,6 +16,8 @@
  *******************************************************************************/
 package fr.cirad.web.controller.gigwa;
 
+import htsjdk.samtools.util.BlockCompressedInputStream;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -302,12 +304,11 @@ public class GigwaController
 									new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 								else
 								{
-									// We support BCF2 import when files are not compressed
 									Boolean fIsBCF = null;
 									if (sLowerCaseFirstLine.startsWith("##fileformat=vcf"))
 										fIsBCF = false;
 									else if (dataFile.toLowerCase().endsWith(".bcf"))
-										fIsBCF = true;
+										fIsBCF = true;	// we support BCF2 only
 									if (fIsBCF != null)
 										new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 									else
@@ -315,7 +316,10 @@ public class GigwaController
 								}
 							}
 							else
-								throw new Exception("Unknown file format: " + dataFile);
+							{	// looks like a compressed file
+								BlockCompressedInputStream.assertNonDefectiveFile(new File(dataFile));
+								new VcfImport(processId).importToMongo(dataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+							}
 						}
 						catch (Exception e)
 						{
