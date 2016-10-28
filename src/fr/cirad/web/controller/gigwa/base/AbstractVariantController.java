@@ -86,13 +86,13 @@ import fr.cirad.mgdb.exporting.individualoriented.AbstractIndividualOrientedExpo
 import fr.cirad.mgdb.exporting.markeroriented.AbstractMarkerOrientedExportHandler;
 import fr.cirad.mgdb.model.mongo.maintypes.DBVCFHeader;
 import fr.cirad.mgdb.model.mongo.maintypes.DBVCFHeader.VcfHeaderId;
+import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData.VariantRunDataId;
 import fr.cirad.mgdb.model.mongo.maintypes.GenotypingProject;
 import fr.cirad.mgdb.model.mongo.maintypes.VariantData;
+import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData;
 import fr.cirad.mgdb.model.mongo.subtypes.ReferencePosition;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleGenotype;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleId;
-import fr.cirad.mgdb.model.mongo.subtypes.VariantRunData;
-import fr.cirad.mgdb.model.mongo.subtypes.VariantRunData.VariantRunDataId;
 import fr.cirad.mgdb.model.mongodao.MgdbDao;
 import fr.cirad.tools.AlphaNumericStringComparator;
 import fr.cirad.tools.Helper;
@@ -998,6 +998,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			BasicDBObject projectObject = new BasicDBObject("_id", "$_id");
 			projectObject.put(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE, "$" + VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE);
 			projectObject.put(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE, "$" + VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE);
+			projectObject.put(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_END_SITE, "$" + VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_END_SITE);
 			projectObject.put(VariantData.FIELDNAME_TYPE, "$" + VariantData.FIELDNAME_TYPE);
 			projectObject.put(VariantData.FIELDNAME_KNOWN_ALLELE_LIST, "$" + VariantData.FIELDNAME_KNOWN_ALLELE_LIST);
 			pipeline.add(new BasicDBObject("$project", projectObject));
@@ -1253,7 +1254,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			genotypingDataAggregationParams2.add(new BasicDBObject("$match", new BasicDBObject("_id." + VariantRunDataId.FIELDNAME_VARIANT_ID, new BasicDBObject("$in", currentVariants))));
 			DBObject project = new BasicDBObject();
 			for (String sField : runDataFieldMap.values())
-				project.put(sField.replaceAll("\\.", "¤"), "$" + sField);
+				project.put(sField.replaceAll("\\.", "Â¤"), "$" + sField);
 			genotypingDataAggregationParams2.add(new BasicDBObject("$project", project));
 
 //			long beforeQuery = System.currentTimeMillis();
@@ -1263,7 +1264,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				DBObject record = genotypingDataCursor.next();
 				Object[] aRow = variantIdToRowMap.get(Helper.readPossiblyNestedField(record, "_id." + VariantRunDataId.FIELDNAME_VARIANT_ID));
 				for (int fieldIndex : runDataFieldMap.keySet())
-					aRow[fieldIndex] = record.get(runDataFieldMap.get(fieldIndex).replaceAll("\\.", "¤"));
+					aRow[fieldIndex] = record.get(runDataFieldMap.get(fieldIndex).replaceAll("\\.", "Â¤"));
 			}
 //			LOG.debug("Genotyping data main query treated in " + (System.currentTimeMillis() - beforeQuery) + "ms");
 		}
@@ -1551,7 +1552,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	public @ResponseBody int getSequenceFilterCount(HttpServletRequest request, @RequestParam("module") String sModule) throws Exception
 	{
 		int result = -1;
-		File sequenceListFile = new File(request.getSession().getServletContext().getRealPath(AbstractVariantController.SEQLIST_FOLDER + File.separator + request.getSession().getId() + "_" + sModule));
+		File sequenceListFile = new File(request.getSession().getServletContext().getRealPath(File.separator + SEQLIST_FOLDER + File.separator + request.getSession().getId() + "_" + sModule));
 		if (sequenceListFile.exists() && sequenceListFile.length() > 0)
 		{
 		   LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(sequenceListFile));
@@ -1573,7 +1574,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	protected ArrayList<String> getSequenceIDsBeingFilteredOn(HttpServletRequest request, String sModule) throws Exception
 	{
 		ArrayList<String> sequences = new ArrayList<String>();
-		File selectionFile = new File(request.getSession().getServletContext().getRealPath(SEQLIST_FOLDER) + File.separator + request.getSession().getId() + "_" + sModule);
+		File selectionFile = new File(request.getSession().getServletContext().getRealPath(File.separator + SEQLIST_FOLDER) + File.separator + request.getSession().getId() + "_" + sModule);
 		if (selectionFile.exists() && selectionFile.length() > 0)
 		{
 			Scanner sc = new Scanner(selectionFile);
@@ -1595,7 +1596,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	@RequestMapping(clearSelectedSequenceListURL)
 	public @ResponseBody void clearSequenceFilterFile(HttpServletRequest request, @RequestParam("module") String sModule) throws Exception
 	{
-		File selectionFile = new File(request.getSession().getServletContext().getRealPath(SEQLIST_FOLDER) + File.separator + request.getSession().getId() + "_" + sModule);
+		File selectionFile = new File(request.getSession().getServletContext().getRealPath(File.separator + SEQLIST_FOLDER) + File.separator + request.getSession().getId() + "_" + sModule);
 		if (selectionFile.exists())
 			selectionFile.delete();
 	}
@@ -1612,7 +1613,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			return;	// working around some random bug
 
 		long nowMillis = new Date().getTime();
-		File filterOutputLocation = new File(request.getSession().getServletContext().getRealPath(FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER));
+		File filterOutputLocation = new File(request.getSession().getServletContext().getRealPath(File.separator + FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER));
 		if (filterOutputLocation.exists() && filterOutputLocation.isDirectory())
 			for (File f : filterOutputLocation.listFiles())
 				if (f.isDirectory() && nowMillis - f.lastModified() > JOB_OUTPUT_EXPIRATION_DELAY_MILLIS)
@@ -1705,7 +1706,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	private String getSequenceFilterQueryKey(HttpServletRequest request, String sModule) throws Exception
 	{
 		String qk = null;
-		File sequenceListFile = new File(request.getSession().getServletContext().getRealPath(SEQLIST_FOLDER + File.separator + request.getSession().getId() + "_" + sModule));
+		File sequenceListFile = new File(request.getSession().getServletContext().getRealPath(File.separator + SEQLIST_FOLDER + File.separator + request.getSession().getId() + "_" + sModule));
 		if (sequenceListFile.exists() && sequenceListFile.length() > 0)
 		{
 		   LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(sequenceListFile));

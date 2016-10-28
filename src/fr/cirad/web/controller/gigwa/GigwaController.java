@@ -326,15 +326,15 @@ public class GigwaController
 							LOG.error("Error importing " + dataFile, e);
 							progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
 							if (!fDatasourceAlreadyExisted)
-								try
-								{
+//								try
+//								{
 									MongoTemplateManager.removeDataSource(sNormalizedModule, true);
 									LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
-								}
-								catch (IOException ioe)
-								{
-									LOG.error("Unable to remove datasource " + sNormalizedModule, ioe);
-								}
+//								}
+//								catch (IOException ioe)
+//								{
+//									LOG.error("Unable to remove datasource " + sNormalizedModule, ioe);
+//								}
 						}
 						finally
 						{

@@ -18,11 +18,9 @@ package fr.cirad.web.controller.gigwa;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-//import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
@@ -31,27 +29,12 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Controller;
 
-//import com.mongodb.AggregationOutput;
-//import com.mongodb.BasicDBObject;
-//import com.mongodb.DBObject;
-
-
-
-
-
-
-
-
-
-
-
 import fr.cirad.mgdb.model.mongo.maintypes.GenotypingProject;
 import fr.cirad.mgdb.model.mongo.maintypes.VariantData;
-//import fr.cirad.mgdb.model.mongo.maintypes.VariantData;
+import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData;
+import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData.VariantRunDataId;
 import fr.cirad.mgdb.model.mongo.subtypes.GenotypingSample;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleGenotype;
-import fr.cirad.mgdb.model.mongo.subtypes.VariantRunData;
-import fr.cirad.mgdb.model.mongo.subtypes.VariantRunData.VariantRunDataId;
 import fr.cirad.tools.mongo.MongoTemplateManager;
 import fr.cirad.web.controller.gigwa.base.AbstractVariantController;
 
@@ -95,7 +78,7 @@ public class DefaultVariantController extends AbstractVariantController
 	{
 		MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 		GenotypingProject proj = mongoTemplate.findById(projId, GenotypingProject.class);
-		return proj.getSequences();
+		return new ArrayList<String>(proj.getSequences());
 	}
 
 	/* (non-Javadoc)

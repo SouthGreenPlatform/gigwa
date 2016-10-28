@@ -17,7 +17,7 @@
 		Author(s): Guilhem SEMPERE, Florian PHILIPPE
 --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="UTF-8" import="fr.cirad.mgdb.model.mongo.subtypes.VariantRunData,fr.cirad.mgdb.model.mongo.subtypes.ReferencePosition,fr.cirad.mgdb.model.mongo.maintypes.VariantData,fr.cirad.web.controller.gigwa.base.AbstractVariantController"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="UTF-8" import="fr.cirad.mgdb.model.mongo.maintypes.VariantRunData,fr.cirad.mgdb.model.mongo.subtypes.ReferencePosition,fr.cirad.mgdb.model.mongo.maintypes.VariantData,fr.cirad.web.controller.gigwa.base.AbstractVariantController"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <html>
