@@ -95,6 +95,7 @@ import fr.cirad.mgdb.model.mongo.subtypes.SampleGenotype;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleId;
 import fr.cirad.mgdb.model.mongodao.MgdbDao;
 import fr.cirad.tools.AlphaNumericStringComparator;
+import fr.cirad.tools.AppConfig;
 import fr.cirad.tools.Helper;
 import fr.cirad.tools.ProgressIndicator;
 import fr.cirad.tools.mgdb.GenotypingDataQueryBuilder;
@@ -246,6 +247,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 	/** The nf. */
 	static protected NumberFormat nf = NumberFormat.getInstance();
+	
+    @Autowired
+    private AppConfig appConfig;
 
 	static
 	{
@@ -429,7 +433,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				}
 			}
 		}.start();
-
+        
+//		response.addHeader("X-Frame-Options", "ALLOW-FROM http://172.20.30.22:8081");
+		
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("projects", getProjectIdToNameMap(sModule));
 		mav.addObject("genotypeCodes", genotypeCodeToDescriptionMap);
@@ -449,6 +455,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			exportFormats.put(exportHandler.getExportFormatName(), info);
 		}
 		mav.addObject("exportFormats", exportFormats);
+		mav.addObject("genomeBrowserURL", appConfig.get("genomeBrowser-" + sModule));
 		return mav;
 	}
 
@@ -835,8 +842,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 						final ArrayList<Thread> threadsToWaitFor = new ArrayList<Thread>();
 						final AtomicInteger finishedThreadCount = new AtomicInteger(0);
 
-						int i = 0;
-						while (genotypingDataQueryBuilder.hasNext())
+						for (int i=0; i<nChunkCount; i++)
 						{
 							final List<DBObject> genotypingDataPipeline = genotypingDataQueryBuilder.next();
 
@@ -872,7 +878,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				            	threadsToWaitFor.add(t);
 				            	t.start();	// run asynchronously for better speed
 			                }
-			                i++;
 						}
 
 						for (Thread t : threadsToWaitFor)	// wait for all threads before moving to next phase

@@ -30,7 +30,7 @@
 
 <body style="background-color:#ffffff;">
 												
-<div id="container" style="min-width:310px; height:400px; margin:0 auto; overflow:hidden;"></div>
+<div id="container" style="min-width:310px; height:370px; margin:0 auto; overflow:hidden;"></div>
 
 <script type="text/javascript">
 var minimumProcessQueryIntervalUnit = 1000;

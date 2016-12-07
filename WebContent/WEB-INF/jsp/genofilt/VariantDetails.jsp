@@ -28,10 +28,15 @@
 	<script type="text/javascript">	
 	function showHideUnselectedIndividuals(tableObj, show)
 	{
+		var individualSubSelection = ";";
+		if ($("#individuals option:disabled", parent.document).length > 0)
+			$("#individuals option:enabled", parent.document).each(function() {
+				individualSubSelection += $(this).val() + ";";							
+			});
 		tableObj.find("tr:gt(1)").each(function() {
 			if (show == false && !$(this).hasClass("selectedIndividual"))
 				$(this).hide();
-			else
+			else if (individualSubSelection == ";" || individualSubSelection.contains(";" + $(this).find("th").text() + ";"))
 				$(this).show();
 		});
 	}

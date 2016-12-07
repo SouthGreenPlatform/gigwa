@@ -320,7 +320,9 @@ a.selectedLeftMenuItem {
 	font-size:11px;
 }
 
-
+div#simplemodal-container {
+	top:10px !important;
+}
 
 
 

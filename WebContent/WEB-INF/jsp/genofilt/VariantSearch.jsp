@@ -201,9 +201,7 @@
 						   				cellData += (allIdx == 0 ? "" :" ") + "<div class='allele'" + (alleleArray[allIdx].length < 6 ? "" :" title='size:" + alleleArray[allIdx].length + "'") + ">" + alleleArray[allIdx] + "</div>";
 					   			}
 						   		else if (subkey == 5 || subkey == 6)
-						   		{
 						   			cellData = cellData.replace(/ , /g, "<br>");
-						   		}
 						   		if (subkey < jsonResult[key].length - 1)
 						   		{
 						   			var isHiddenId = subkey == 0 && isValidMongoObjectId(cellData);
@@ -213,7 +211,8 @@
 						   	for (var i=jsonResult[key].length; i<=$("#variantResultTable th:visible").size(); i++)
 						   		rowContents += "<td></td>";
 
-							rowContents += "<td style='border:none;' nowrap><a href='javascript:showDetails(\"" + encodeURIComponent(jsonResult[key][jsonResult[key].length - 1]) + "\", \"" + getSelectedIndividuals() + "\");' title='Variant details' onclick='selectedRowId=\"" + jsonResult[key][jsonResult[key].length - 1] + "\"; highlightSelectedVariant();'><img src='../img/magnifier.gif'></a></td>";
+						   	var genomeBrowserLink = (typeof viewGeneInGenomeBrowser == 'undefined') ? "" : "<a href=\"javascript:viewGeneInGenomeBrowser('" + jsonResult[key][1] + ":" + jsonResult[key][2] + ".." + (jsonResult[key][3] == "" ? jsonResult[key][2] : jsonResult[key][3]) + "');\" title='Click to browse genome'><img src='../img/icon_genome_browser.gif'></a>";
+							rowContents += "<td style='border:none;' nowrap><a href='javascript:showDetails(\"" + encodeURIComponent(jsonResult[key][jsonResult[key].length - 1]) + "\", \"" + getSelectedIndividuals() + "\");' title='Variant details' onclick='selectedRowId=\"" + jsonResult[key][jsonResult[key].length - 1] + "\"; highlightSelectedVariant();'><img src='../img/magnifier.gif'></a>" + genomeBrowserLink + "</td>";
 							newContents += "<tr class='hideable'>" + rowContents + "</tr>";
 					   		nAddedRows++;
 				   		}
@@ -410,7 +409,7 @@
 				$.getJSON('<c:url value="<%=AbstractVariantController.individualListURL%>" />', { module:'${param.module}',project:$('#project').val() }, function(jsonResult){				
 					$("#individuals").empty();
 					for (var key in jsonResult) {
-						$("#individuals").append("<option value='" + jsonResult[key] + "' title='" + jsonResult[key] + "'>" + jsonResult[key] + "</option>");
+						$("#individuals").append("<option " + (individualSubSet != null && !arrayContains(individualSubSet, jsonResult[key]) ? "style='display:none;' disabled " : "") + "value='" + jsonResult[key] + "' title='" + jsonResult[key] + "'>" + jsonResult[key] + "</option>");
 					}
 					applyIndividualSelection();
 				}).error(function(xhr, ajaxOptions, thrownError) {
@@ -581,9 +580,20 @@
 			if ($('#individuals option').length == 1)
 				return $('#individuals option:eq(0)').val();
 			var selectedIndividuals = $('#individuals').val();
-			if (selectedIndividuals == null || selectedIndividuals.length == $('#individuals option').length)
+			if (selectedIndividuals == null)
+			{
+				if (0 == $('#individuals option:disabled').length)
+					return "";
+				
+				var result = "";
+				$("#individuals option:enabled").each(function() {
+					result += (result == "" ? "" : ";") + $(this).val();							
+				});
+				return result;
+			}
+			if (selectedIndividuals.length == $('#individuals option').length)
 				return "";
-			return selectedIndividuals.join(';');	
+			return selectedIndividuals.join(';');
 		} 
 		
 		function getSelectedSequences()
@@ -593,7 +603,7 @@
 			var selectedSequences = $('#sequences').val();
 			if (selectedSequences == null || selectedSequences.length == $('#sequences option').length)
 				return "";
-			return selectedSequences.join(';');	
+			return selectedSequences.join(';');
 		}
 		
 		function getSelectedNumberOfAlleles(returnEvenIfUnique)
@@ -609,9 +619,9 @@
 		
 		function applySequenceSelection()
 		{
-			var selectIndividualCSV = getSelectedSequences();
-			var nSelectedIndividualCount = selectIndividualCSV == "" ? 0 :selectIndividualCSV.split(";").length;
-			$("#sequenceCount").html(" (" + (nSelectedIndividualCount == 0 ? $("#sequences option").size() :nSelectedIndividualCount) + " / " + $("#sequences option").size() + ")");
+			var selectSequenceCSV = getSelectedSequences();
+			var nSelectedSequenceCount = selectSequenceCSV == "" ? 0 :selectSequenceCSV.split(";").length;
+			$("#sequenceCount").html(" (" + (nSelectedSequenceCount == 0 ? $("#sequences option").size() :nSelectedSequenceCount) + " / " + $("#sequences option").size() + ")");
 		}	
 		
 		function applyIndividualSelection()
@@ -619,7 +629,7 @@
 			var op = document.getElementById('gtCode').getElementsByTagName('option');
 			var selectIndividualCSV = getSelectedIndividuals();
 			var nSelectedIndividualCount = selectIndividualCSV == "" ? 0 :selectIndividualCSV.split(";").length;
-			$("#individualCount").html(" (" + (nSelectedIndividualCount == 0 ? $("#individuals option").size() :nSelectedIndividualCount) + " / " + $("#individuals option").size() + ")");
+			$("#individualCount").html(" (" + (nSelectedIndividualCount == 0 ? $("#individuals option:enabled").size() :nSelectedIndividualCount) + " / " + $("#individuals option:enabled").size() + ")");
 			
 			for (var i=1; i<5; i++)
 			{
@@ -769,6 +779,21 @@
 		}
 
 		initialiseNavigationVariables();
+		
+		var individualSubSet = "${param.individualSubSet}".trim().split(";");
+		if (individualSubSet.length == 1 && individualSubSet[0] == "")
+			individualSubSet = null;
+		
+		<c:if test="${genomeBrowserURL ne null}">
+		function viewGeneInGenomeBrowser(variantPos)
+		{
+	        $("#genomeBrowserDialog").modal({
+	        	opacity:80,
+	        	overlayCss:{backgroundColor:"#111"}
+	        });
+	        $("#genomeBrowserFrame").attr('src', "${genomeBrowserURL}".replace(/\*/g, variantPos));
+		}
+		</c:if>
 		</script>
 </head>
 
@@ -951,7 +976,20 @@
 						<td align='center'><div id="chartDialogTitle"></div></td>
 					</tr>
 					<tr>
-						<td align='center'><iframe style='margin:15px; width:900px; min-height:450px;' name="chartFrame" id="chartFrame"></iframe> <br>
+						<td align='center'><iframe style='margin:15px; width:900px; min-height:410px;' name="chartFrame" id="chartFrame"></iframe> <br>
+							<form>
+								<input type='button' value='Close' class="simplemodal-close">
+							</form></td>
+					</tr>
+				</table>
+			</div>
+			<div id="genomeBrowserDialog" align="center" style="margin:15px; width:100%; display:none; position:absolute; top:0px; left:0px; z-index:100;">
+				<table style="border-spacing:0; background:#fff; background-color:#21A32C; border:2px solid #E0E0E0; margin-top:2px;" cellpadding='0' cellspacing='0'>
+					<tr>
+						<td align='center'><div id="genomeBrowserDialogTitle" style='font-size:12px;'></div></td>
+					</tr>
+					<tr>
+						<td align='center'><iframe style='background-color:#ffffff; margin:15px; width:900px; min-height:410px;' name="genomeBrowserFrame" id="genomeBrowserFrame"></iframe> <br>
 							<form>
 								<input type='button' value='Close' class="simplemodal-close">
 							</form></td>
