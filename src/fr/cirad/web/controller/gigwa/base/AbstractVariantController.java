@@ -1450,7 +1450,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		try
 		{
 			GenotypingProject project = mongoTemplate.findById(projId, GenotypingProject.class);
-			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants_" + sExportFormat + ".zip";
+			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants" + (!sExportFormat.toUpperCase().equals("FLAPJACK") ? "_" + sExportFormat + ".zip" : ".fjzip");
 			OutputStream os;
 			LOG.info((fKeepExportOnServer ? "On-server" : "Direct-download") + " export requested: " + sShortProcessID);
 			if (fKeepExportOnServer)

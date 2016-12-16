@@ -8,3 +8,5 @@
 /src/datasources.properties
 /src/users.properties
 /.settings/
+/.classpath
+/.project

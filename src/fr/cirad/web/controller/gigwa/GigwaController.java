@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.ModelAndView;
 
+import fr.cirad.mgdb.importing.BrapiImport;
 import fr.cirad.mgdb.importing.HapMapImport;
 import fr.cirad.mgdb.importing.VcfImport;
 import fr.cirad.mgdb.model.mongo.maintypes.GenotypingProject;
@@ -241,7 +242,7 @@ public class GigwaController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(genotypingDataImportSubmissionURL)
-	public @ResponseBody String importGenotypingData(HttpServletRequest request, @RequestParam("host") final String sHost, @RequestParam("module") final String sModule, @RequestParam("project") final String sProject, @RequestParam("run") final String sRun, @RequestParam(value="technology", required=false) final String sTechnology, @RequestParam(value="clearProjectData", required=false) final Boolean fClearProjectData, @RequestParam("mainFile") final String dataFile) throws Exception
+	public @ResponseBody String importGenotypingData(HttpServletRequest request, @RequestParam("host") final String sHost, @RequestParam("module") final String sModule, @RequestParam("project") final String sProject, @RequestParam("run") final String sRun, @RequestParam(value="technology", required=false) final String sTechnology, @RequestParam(value="clearProjectData", required=false) final Boolean fClearProjectData, @RequestParam("mainFile") final String dataFile, @RequestParam(value="brapiParameter_mapDbId", required=false) final String sBrapiMapDbId, @RequestParam(value="brapiParameter_studyDbId", required=false) final String sBrapiStudyDbId) throws Exception
 	{
 		final String sNormalizedModule = Normalizer.normalize(sModule, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").replaceAll(" ", "_");
 		final String processId = "IMPORT__GENOTYPING_DATA__" + sNormalizedModule + "__" + sProject + "__" + sRun + "__" + System.currentTimeMillis();
@@ -293,52 +294,65 @@ public class GigwaController
 			if (fDatasourceExists)
 				new Thread() {
 					public void run() {
-						Scanner scanner = null;
-						try
-						{
-							scanner = new Scanner(new File(dataFile));
-							if (scanner.hasNext())
+						if (sBrapiMapDbId != null && sBrapiStudyDbId != null && dataFile.toLowerCase().startsWith("http"))
+							try
 							{
-								String sLowerCaseFirstLine = scanner.next().toLowerCase();
-								if (sLowerCaseFirstLine.startsWith("rs#"))
-									new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-								else
+								new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+							}
+							catch (Exception e)
+							{
+								LOG.error("Error importing " + dataFile, e);
+								progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
+								if (!fDatasourceAlreadyExisted)
 								{
-									Boolean fIsBCF = null;
-									if (sLowerCaseFirstLine.startsWith("##fileformat=vcf"))
-										fIsBCF = false;
-									else if (dataFile.toLowerCase().endsWith(".bcf"))
-										fIsBCF = true;	// we support BCF2 only
-									if (fIsBCF != null)
-										new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-									else
-										throw new Exception("Unknown file format: " + dataFile);
-								}
-							}
-							else
-							{	// looks like a compressed file
-								BlockCompressedInputStream.assertNonDefectiveFile(new File(dataFile));
-								new VcfImport(processId).importToMongo(dataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-							}
-						}
-						catch (Exception e)
-						{
-							LOG.error("Error importing " + dataFile, e);
-							progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
-							if (!fDatasourceAlreadyExisted)
-//								try
-//								{
 									MongoTemplateManager.removeDataSource(sNormalizedModule, true);
 									LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
-//								}
-//								catch (IOException ioe)
-//								{
-//									LOG.error("Unable to remove datasource " + sNormalizedModule, ioe);
-//								}
-						}
-						finally
+								}
+							}
+						else
 						{
-							scanner.close();
+							Scanner scanner = null;
+							try
+							{
+								scanner = new Scanner(new File(dataFile));
+								if (scanner.hasNext())
+								{
+									String sLowerCaseFirstLine = scanner.next().toLowerCase();
+									if (sLowerCaseFirstLine.startsWith("rs#"))
+										new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+									else
+									{
+										Boolean fIsBCF = null;
+										if (sLowerCaseFirstLine.startsWith("##fileformat=vcf"))
+											fIsBCF = false;
+										else if (dataFile.toLowerCase().endsWith(".bcf"))
+											fIsBCF = true;	// we support BCF2 only
+										if (fIsBCF != null)
+											new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										else
+											throw new Exception("Unknown file format: " + dataFile);
+									}
+								}
+								else
+								{	// looks like a compressed file
+									BlockCompressedInputStream.assertNonDefectiveFile(new File(dataFile));
+									new VcfImport(processId).importToMongo(dataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+								}
+							}
+							catch (Exception e)
+							{
+								LOG.error("Error importing " + dataFile, e);
+								progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
+								if (!fDatasourceAlreadyExisted)
+								{
+									MongoTemplateManager.removeDataSource(sNormalizedModule, true);
+									LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
+								}
+							}
+							finally
+							{
+								scanner.close();
+							}
 						}
 					}
 				}.start();
