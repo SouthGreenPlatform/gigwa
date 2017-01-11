@@ -181,7 +181,13 @@
 		$("#importButton").attr('disabled', 'disabled');
 		$("form select").attr('disabled', 'disabled');
 		$("form input").attr('disabled', 'disabled');
-		$.getJSON('<c:url value="<%= GigwaController.genotypingDataImportSubmissionURL %>" />', { brapiParameter_mapDbId:brapiParameters['mapDbId'],brapiParameter_studyDbId:brapiParameters['studyDbId'],host:host,module:module,project:project,run:run,technology:technology,clearProjectData:clearProjectData,mainFile:mainFile }, function(jsonResult) {
+		var params = { host:host,module:module,project:project,run:run,technology:technology,clearProjectData:clearProjectData,mainFile:mainFile };
+		if (typeof brapiParameters != 'undefined')
+		{
+			params['brapiParameter_mapDbId'] = brapiParameters['mapDbId'];
+			params['brapiParameter_studyDbId'] = brapiParameters['studyDbId'];
+		}
+		$.getJSON('<c:url value="<%= GigwaController.genotypingDataImportSubmissionURL %>" />', params, function(jsonResult) {
 			setTimeout("checkProcessProgress(\"../" + jsonResult + "\");", minimumProcessQueryIntervalUnit);
 		}).error(function(xhr, ajaxOptions, thrownError) {
 			handleJsonError(xhr, ajaxOptions, thrownError);

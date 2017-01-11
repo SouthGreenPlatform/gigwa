@@ -294,10 +294,10 @@ public class GigwaController
 			if (fDatasourceExists)
 				new Thread() {
 					public void run() {
-						if (sBrapiMapDbId != null && sBrapiStudyDbId != null && dataFile.toLowerCase().startsWith("http"))
+						if (sBrapiMapDbId != null && sBrapiStudyDbId != null && dataFile.trim().toLowerCase().startsWith("http"))
 							try
 							{
-								new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+								new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile.trim(), sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 							}
 							catch (Exception e)
 							{
@@ -314,7 +314,7 @@ public class GigwaController
 							Scanner scanner = null;
 							try
 							{
-								scanner = new Scanner(new File(dataFile));
+								scanner = new Scanner(new File(dataFile.trim()));
 								if (scanner.hasNext())
 								{
 									String sLowerCaseFirstLine = scanner.next().toLowerCase();
@@ -335,7 +335,7 @@ public class GigwaController
 								}
 								else
 								{	// looks like a compressed file
-									BlockCompressedInputStream.assertNonDefectiveFile(new File(dataFile));
+									BlockCompressedInputStream.assertNonDefectiveFile(new File(dataFile.trim()));
 									new VcfImport(processId).importToMongo(dataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 								}
 							}
