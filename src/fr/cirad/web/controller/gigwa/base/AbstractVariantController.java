@@ -1439,7 +1439,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		DBObject query = count == nTempVarCount ? null : new BasicDBObject(VariantData.FIELDNAME_VERSION, new BasicDBObject("$exists", true));
 		String sequenceField = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE;
 		String startField = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE;
-		BasicDBObject sort = new BasicDBObject/*(sequenceField, 1).append(startField, 1).append*/("_id", 1);
+//		BasicDBObject sort = new BasicDBObject("_id", 1);
+//		BasicDBObject sort = new BasicDBObject(sequenceField, 1).append(startField, 1);
+		BasicDBObject sort = null;	/*FIXME: see how much enabling sorting slows down exports */
 		DBObject projection = new BasicDBObject();
 		projection.put(sequenceField, 1);
 		projection.put(startField, 1);
@@ -1449,13 +1451,16 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		try
 		{
+			AbstractIndividualOrientedExportHandler individualOrientedExportHandler = AbstractIndividualOrientedExportHandler.getIndividualOrientedExportHandlers().get(sExportFormat);
+			AbstractMarkerOrientedExportHandler markerOrientedExportHandler = AbstractMarkerOrientedExportHandler.getMarkerOrientedExportHandlers().get(sExportFormat);
+			
 			GenotypingProject project = mongoTemplate.findById(projId, GenotypingProject.class);
-			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants" + (!sExportFormat.toUpperCase().equals("FLAPJACK") ? "_" + sExportFormat + ".zip" : ".fjzip");
+			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants" + "." + (individualOrientedExportHandler != null ? individualOrientedExportHandler : markerOrientedExportHandler).getExportFileExtension();
 			OutputStream os;
 			LOG.info((fKeepExportOnServer ? "On-server" : "Direct-download") + " export requested: " + sShortProcessID);
 			if (fKeepExportOnServer)
 			{
-				String relativeOutputFolder = FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER + File.separator + sShortProcessID.replaceAll("\\|", "_") + File.separator;
+				String relativeOutputFolder = File.separator + FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER + File.separator + sShortProcessID.replaceAll("\\|", "_") + File.separator;
 				File outputLocation = new File(request.getSession().getServletContext().getRealPath(relativeOutputFolder));
 				if (!outputLocation.exists() && !outputLocation.mkdirs())
 					throw new Exception("Unable to create folder: " + outputLocation);
@@ -1483,14 +1488,13 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				response.getWriter().write(exportURL);
 				response.flushBuffer();
 			}
-			else
-			{
-				// The two next lines are an ugly hack that makes the client believe transfer has started. Otherwise we may end-up with a client-side timeout (search for network.http.response.timeout for more details)
-				response.getOutputStream().print(" ");
-				response.getOutputStream().flush();
-			}
-
-			AbstractIndividualOrientedExportHandler individualOrientedExportHandler = AbstractIndividualOrientedExportHandler.getIndividualOrientedExportHandlers().get(sExportFormat);
+//			else
+//			{
+//				// The two next lines are an ugly hack that makes the client believe transfer has started. Otherwise we may end-up with a client-side timeout (search for network.http.response.timeout for more details)
+//				response.getOutputStream().print(" ");
+//				response.getOutputStream().flush();
+//			}
+			
 			if (individualOrientedExportHandler != null)
 			{
 				progress.addStep("Reading and re-organizing genotypes"); // initial step will consist in organizing genotypes by individual rather than by marker
@@ -1503,9 +1507,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 					individualOrientedExportHandler.exportData(os, sModule, exportFiles.values(), true, progress, markerCursor, null, null);
 				}
 			}
-			else
+			else if (markerOrientedExportHandler != null)
 			{
-				AbstractMarkerOrientedExportHandler markerOrientedExportHandler = AbstractMarkerOrientedExportHandler.getMarkerOrientedExportHandlers().get(sExportFormat);
 				for (String step : markerOrientedExportHandler.getStepList())
 					progress.addStep(step);
 				progress.moveToNextStep();	// done with identifying variants
@@ -1513,6 +1516,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				markerOrientedExportHandler.exportData(os, sModule, sampleIDs, progress, markerCursor, null, genotypeQualityThreshold, readDepthThreshold, null);
 				LOG.debug("done with exportData");
 			}
+			else
+				throw new Exception("No export handler found for format " + sExportFormat);
 
 			if (!progress.hasAborted())
 			{
