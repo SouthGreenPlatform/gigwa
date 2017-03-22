@@ -800,125 +800,125 @@
 <body style='background-color:#f0f0f0;' onload="applyProjectSelectionToProjectDependantWidgets(); displaySequenceFilterMessage(); applyIndividualSelection(); checkBrowsingBoxAccordingToCookie(); $('input#browsingAndExportingEnabled').change(); $('select#exportFormat').change();">
 	<c:choose>
 		<c:when test="${fn:length(projects) > 0}">
-			<form onsubmit="return false;" id="theForm" style="margin-bottom:5px;">
-				<table width="970" cellpadding='0' cellspacing='2'>
-					<tr>
-						<td valign="top" width="70"><b>Variant types</b><br> <select size="13" multiple id="variantTypes" name="variantTypes" style="width:65px;" onchange="dirtyForm();"></select> <input
-							type="button" style="margin-top:8px; width:65px;"
-							onclick="if (confirm('Are you sure?')) {$('form#theForm')[0].reset(); $('.chosen-select option').prop('selected', false).trigger('chosen:updated'); dirtyForm(); initialiseNavigationVariables(); $('table#variantResultTable th').attr('class', 'sortableTableHeader'); checkBrowsingBoxAccordingToCookie();}"
-							value="Clear filters"></td>
-						<td valign="top" width="75"><b>Sequences</b>
-							<div id="sequenceCount">&nbsp;</div>
-							<div id="sequenceLoader" style="position:absolute; width:70px; padding-top:10px; padding-bottom:10px; background-color:#cccccc; opacity:0.8; display:none; text-align:center;"></div> <select
-							size="14" multiple id="sequences" name="sequences" style="min-width:70px;" onchange="dirtyForm(); applySequenceSelection();"></select></td>
-						<td valign="top"><b>Individuals</b>
-							<div id="individualCount">&nbsp;</div> <select size="14" multiple id="individuals" name="individuals" style="min-width:70px; max-width:170px;"
-							onchange="dirtyForm(); applyIndividualSelection();"></select></td>
-						<td>&nbsp;</td>
-						<td valign="top" style="min-width:350px;"><b>Genotypes:</b> <select id="gtCode"
-							onchange="dirtyForm(); $('#gtCodeDesc').html(options[selectedIndex].title); enableMafOnlyIfGtCodeAndAlleleNumberAllowTo();">
-								<c:forEach var="code" items="${genotypeCodes}">
-									<option value="${code.key}" title="${code.value}">${code.key}</option>
-								</c:forEach>
-						</select> <img src="../img/icon_qmark.png" style="position:absolute; margin-top:3px;" onmouseover="$('div#gtCodeDesc').css('display', 'inline');" onmouseout="$('div#gtCodeDesc').hide();" /> <br />
-							<div class='infobulle' id='gtCodeDesc'></div>
+			<table width="970" cellpadding='0' cellspacing='2'>
+				<tr>
+					<form onsubmit="return false;" id="theForm" style="margin-bottom:5px;">
+					<td valign="top" width="70"><b>Variant types</b><br> <select size="13" multiple id="variantTypes" name="variantTypes" style="width:65px;" onchange="dirtyForm();"></select> <input
+						type="button" style="margin-top:8px; width:65px;"
+						onclick="if (confirm('Are you sure?')) {$('form#theForm')[0].reset(); $('.chosen-select option').prop('selected', false).trigger('chosen:updated'); dirtyForm(); initialiseNavigationVariables(); $('table#variantResultTable th').attr('class', 'sortableTableHeader'); checkBrowsingBoxAccordingToCookie();}"
+						value="Clear filters"></td>
+					<td valign="top" width="75"><b>Sequences</b>
+						<div id="sequenceCount">&nbsp;</div>
+						<div id="sequenceLoader" style="position:absolute; width:70px; padding-top:10px; padding-bottom:10px; background-color:#cccccc; opacity:0.8; display:none; text-align:center;"></div> <select
+						size="14" multiple id="sequences" name="sequences" style="min-width:70px;" onchange="dirtyForm(); applySequenceSelection();"></select></td>
+					<td valign="top"><b>Individuals</b>
+						<div id="individualCount">&nbsp;</div> <select size="14" multiple id="individuals" name="individuals" style="min-width:70px; max-width:170px;"
+						onchange="dirtyForm(); applyIndividualSelection();"></select></td>
+					<td>&nbsp;</td>
+					<td valign="top" style="min-width:350px;"><b>Genotypes:</b> <select id="gtCode"
+						onchange="dirtyForm(); $('#gtCodeDesc').html(options[selectedIndex].title); enableMafOnlyIfGtCodeAndAlleleNumberAllowTo();">
+							<c:forEach var="code" items="${genotypeCodes}">
+								<option value="${code.key}" title="${code.value}">${code.key}</option>
+							</c:forEach>
+					</select> <img src="../img/icon_qmark.png" style="position:absolute; margin-top:3px;" onmouseover="$('div#gtCodeDesc').css('display', 'inline');" onmouseout="$('div#gtCodeDesc').hide();" /> <br />
+						<div class='infobulle' id='gtCodeDesc'></div>
 
-							<div id="filterOnGQandDP" style="height:50px;">
-								<div style="margin-top:5px;">
-									<b>Minimum per-sample genotype quality:</b> <input type="text" maxlength="4" style="width:16px;" id="genotypeQualityThreshold" value="1"
-										onchange="dirtyForm(); if(!(this.value>1))this.value='1';" onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
-								</div>
-	
-								<div style="margin-top:5px;">
-									<b>Minimum per-sample read depth:</b> <input type="text" maxlength="4" style="width:16px;" id="readDepthThreshold" value="1" onchange="dirtyForm(); if(!(this.value>1))this.value='1';"
-										onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
-								</div>
+						<div id="filterOnGQandDP" style="height:50px;">
+							<div style="margin-top:5px;">
+								<b>Minimum per-sample genotype quality:</b> <input type="text" maxlength="4" style="width:16px;" id="genotypeQualityThreshold" value="1"
+									onchange="dirtyForm(); if(!(this.value>1))this.value='1';" onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
 							</div>
 
 							<div style="margin-top:5px;">
-								<b>Authorized missing data ratio:</b> <input type="text" maxlength="3" style="width:25px; margin-bottom:5px;" name="texte" id="missingdata" value="100"
-									onchange="dirtyForm(); if(this.value>100)this.value='100';" onkeypress="return isNumberKey(event);" onfocus="this.select();" /> %
+								<b>Minimum per-sample read depth:</b> <input type="text" maxlength="4" style="width:16px;" id="readDepthThreshold" value="1" onchange="dirtyForm(); if(!(this.value>1))this.value='1';"
+									onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
 							</div>
+						</div>
 
-							<div id="filterOnMaf" style="margin-top:5px;">
-								<b>Minor allele frequency:</b> from <input type="text" maxlength="2" style="width:20px;" name="texte" id="minmaf" value="0"
-									onchange="dirtyForm(); if (this.value<0 || this.value>50) this.value='0';" onkeypress="return isNumberKey(event);" onfocus="this.select();" />% to <input type="text" maxlength="2"
-									style="width:20px;" name="texte" id="maxmaf" value="50" onchange="dirtyForm(); if (this.value<0 || this.value>50) this.value='50';" onkeypress="return isNumberKey(event);"
-									onfocus="this.select();" />%
-							</div>
+						<div style="margin-top:5px;">
+							<b>Authorized missing data ratio:</b> <input type="text" maxlength="3" style="width:25px; margin-bottom:5px;" name="texte" id="missingdata" value="100"
+								onchange="dirtyForm(); if(this.value>100)this.value='100';" onkeypress="return isNumberKey(event);" onfocus="this.select();" /> %
+						</div>
 
-							<div id="filterAlternateAllele" style="position:absolute; top:80px; margin-left:240px; white-space:nowrap; text-align:right;">
-								<b>Number of alleles:</b> <br /> <select size="4" multiple id="alleleCount" name="alleleCount" onchange="dirtyForm(); disableBiAllelicSpecificQueriesIfNeeded();"></select>
-							</div>
+						<div id="filterOnMaf" style="margin-top:5px;">
+							<b>Minor allele frequency:</b> from <input type="text" maxlength="2" style="width:20px;" name="texte" id="minmaf" value="0"
+								onchange="dirtyForm(); if (this.value<0 || this.value>50) this.value='0';" onkeypress="return isNumberKey(event);" onfocus="this.select();" />% to <input type="text" maxlength="2"
+								style="width:20px;" name="texte" id="maxmaf" value="50" onchange="dirtyForm(); if (this.value<0 || this.value>50) this.value='50';" onkeypress="return isNumberKey(event);"
+								onfocus="this.select();" />%
+						</div>
 
-							<div id="filterOnPosition" style="margin-top:5px;">
-								<b>Position:</b> Min <input type="text" maxlength="9" style="width:52px;" name="texte" id="minposition" onchange="dirtyForm();" onkeypress="return isNumberKey(event);" /> - Max <input
-									type="text" maxlength="9" style="width:52px;" name="texte" id="maxposition" onchange="dirtyForm();" onkeypress="return isNumberKey(event);" /> bp
-							</div>
+						<div id="filterAlternateAllele" style="position:absolute; top:80px; margin-left:240px; white-space:nowrap; text-align:right;">
+							<b>Number of alleles:</b> <br /> <select size="4" multiple id="alleleCount" name="alleleCount" onchange="dirtyForm(); disableBiAllelicSpecificQueriesIfNeeded();"></select>
+						</div>
 
-							<div id="annotationFilters" style="margin-top:5px;">
-								<select data-placeholder="Click to choose variant effects..." class="chosen-select" multiple style="width:350px;" id="variantEffects" name="variantEffects" onchange="dirtyForm();"></select>
-								<div style="margin-top:5px;">
-									<b>Genes:</b> <input type="text" style="width:300px;" name="texte" id="geneName" onchange="dirtyForm();" onkeydown="if(event.keyCode==32) return false;" /><img src="../img/icon_qmark.png"
-										style="position:absolute; margin-top:3px;" onmouseover="$('div#geneNameInfo').css('display', 'inline');" onmouseout="$('div#geneNameInfo').hide();" /> <br />
-									<div class='infobulle' id='geneNameInfo'>
-										Leave blank to ignore this filter<br />Enter "-" for variants without gene-name annotation<br />Enter "+" for variants with any gene-name annotation<br />Enter comma-separated names for
-										specific genes
-									</div>
+						<div id="filterOnPosition" style="margin-top:5px;">
+							<b>Position:</b> Min <input type="text" maxlength="9" style="width:52px;" name="texte" id="minposition" onchange="dirtyForm();" onkeypress="return isNumberKey(event);" /> - Max <input
+								type="text" maxlength="9" style="width:52px;" name="texte" id="maxposition" onchange="dirtyForm();" onkeypress="return isNumberKey(event);" /> bp
+						</div>
+
+						<div id="annotationFilters" style="margin-top:5px;">
+							<select data-placeholder="Click to choose variant effects..." class="chosen-select" multiple style="width:350px;" id="variantEffects" name="variantEffects" onchange="dirtyForm();"></select>
+							<div style="margin-top:5px;">
+								<b>Genes:</b> <input type="text" style="width:300px;" name="texte" id="geneName" onchange="dirtyForm();" onkeydown="if(event.keyCode==32) return false;" /><img src="../img/icon_qmark.png"
+									style="position:absolute; margin-top:3px;" onmouseover="$('div#geneNameInfo').css('display', 'inline');" onmouseout="$('div#geneNameInfo').hide();" /> <br />
+								<div class='infobulle' id='geneNameInfo'>
+									Leave blank to ignore this filter<br />Enter "-" for variants without gene-name annotation<br />Enter "+" for variants with any gene-name annotation<br />Enter comma-separated names for
+									specific genes
 								</div>
-							</div></td>
-						<td>&nbsp;</td>
-						<td valign="top" style="width:260px; height:210px; background-color:#f8f8f8; border:1px outset #888888; padding:8px;">							
-							<div align="right" style="margin-bottom:10px;">
-								Project <select id="project" onchange="applyProjectSelectionToProjectDependantWidgets();" style="max-width:160px;">
-									<c:forEach var="project" items="${projects}">
-										<option value="${project.key}">${project.value}</option>
-									</c:forEach>
-								</select>
-								<input type="button" style='margin-left:5px;' onclick="setVariable('pageNumber', 0); loadData();" value="Search" id="searchButton">
 							</div>
-							<input type="checkbox" id="browsingAndExportingEnabled" onchange="browsingBoxChanged();" style="margin-left:60px; margin-top:0; margin-bottom:10px;" />&nbsp;Enable browsing and exporting
-							<div style="height:45px;">
-								<div style="width:250px; position:absolute; font-size:18px; font-weight:bold; padding:10px; text-align:center;" id="resultCountDiv"></div>
-								<div style="width:260px; position:absolute; white-space:nowrap; background-color:#f8f8f8;" id="exportLaunchDiv">
-									<c:if test="${exportFormats.VCF ne null}">
-										<img style="position:absolute; float:left; margin-top:-5px; margin-left:30px; cursor:pointer; cursor:hand;" src="../img/lightbulb.gif" title="TIP: You may view selected variants in their genomic context by starting IGV, ticking the 'Keep export file(s) on server' box and exporting in VCF format" />
+						</div></td>
+					<td>&nbsp;</td>
+					</form>
+					<td valign="top" style="width:260px; height:210px; background-color:#f8f8f8; border:1px outset #888888; padding:8px;">							
+						<div align="right" style="margin-bottom:10px;">
+							Project <select id="project" onchange="applyProjectSelectionToProjectDependantWidgets();" style="max-width:160px;">
+								<c:forEach var="project" items="${projects}">
+									<option value="${project.key}">${project.value}</option>
+								</c:forEach>
+							</select>
+							<input type="button" style='margin-left:5px;' onclick="setVariable('pageNumber', 0); loadData();" value="Search" id="searchButton">
+						</div>
+						<input type="checkbox" id="browsingAndExportingEnabled" onchange="browsingBoxChanged();" style="margin-left:60px; margin-top:0; margin-bottom:10px;" />&nbsp;Enable browsing and exporting
+						<div style="height:45px;">
+							<div style="width:250px; position:absolute; font-size:18px; font-weight:bold; padding:10px; text-align:center;" id="resultCountDiv"></div>
+							<div style="width:260px; position:absolute; white-space:nowrap; background-color:#f8f8f8;" id="exportLaunchDiv">
+								<c:if test="${exportFormats.VCF ne null}">
+									<img style="position:absolute; float:left; margin-top:-5px; margin-left:30px; cursor:pointer; cursor:hand;" src="../img/lightbulb.gif" title="TIP: You may view selected variants in their genomic context by starting IGV, ticking the 'Keep export file(s) on server' box and exporting in VCF format" />
+								</c:if>
+								<input type="checkbox" id="keepExportOnServer" style="margin-left:60px; margin-top:0; margin-bottom:0;" />&nbsp;Keep export file(s) on server
+								<div align='right' style="margin-bottom:5px; vertical-align:bottom; width:100%;">
+									<c:if test="${!empty exportFormats}">
+										Export as
+										<select id="exportFormat" onchange="$('div#exportFormatDetails').html($('select#exportFormat option:selected').attr('title'));">
+											<c:forEach var="exportFormat" items="${exportFormats}">
+												<option value="${exportFormat.key}" title="${exportFormat.value.desc}" abbr="${exportFormat.value.supportedVariantTypes}">${exportFormat.key}</option>
+											</c:forEach>
+										</select>
+										<img style="position:relative; top:2px; cursor:pointer; cursor:hand; padding-top:3px;" src="../img/icon_qmark.png" title="Toggle export format details" onclick="$('div#exportFormatDetails').toggle();"/>
+										<input type="button" id="exportButton" value="Export selection" onclick="exportSelectedData();" disabled>
 									</c:if>
-									<input type="checkbox" id="keepExportOnServer" style="margin-left:60px; margin-top:0; margin-bottom:0;" />&nbsp;Keep export file(s) on server
-									<div align='right' style="margin-bottom:5px; vertical-align:bottom; width:100%;">
-										<c:if test="${!empty exportFormats}">
-											Export as
-											<select id="exportFormat" onchange="$('div#exportFormatDetails').html($('select#exportFormat option:selected').attr('title'));">
-												<c:forEach var="exportFormat" items="${exportFormats}">
-													<option value="${exportFormat.key}" title="${exportFormat.value.desc}" abbr="${exportFormat.value.supportedVariantTypes}">${exportFormat.key}</option>
-												</c:forEach>
-											</select>
-											<img style="position:relative; top:2px; cursor:pointer; cursor:hand; padding-top:3px;" src="../img/icon_qmark.png" title="Toggle export format details" onclick="$('div#exportFormatDetails').toggle();"/>
-											<input type="button" id="exportButton" value="Export selection" onclick="exportSelectedData();" disabled>
-										</c:if>
-									</div>
 								</div>
 							</div>
+						</div>
 
-							<div id="sequenceFilterMessage" style="width:170px; height:65px; margin-top:5px; margin-left:60px; position:absolute;"></div>
-							<div style="position:absolute; margin-top:5px; margin-left:15px; width:220px; height:65px; background-color:#ffaaaa; text-align:center; visibility:hidden" class="formErrors" id="errorBlock">
-								<div style="margin:10px; font-size:15px; font-weight:bold;">Sorry, an error occured</div>
-								<a href="#" id="errorAlertAnchor">Click for technical details</a> <br />&nbsp;
-							</div>
-							<div id="exportFormatDetails" style="display:none; padding:5px; background-color:#ffffff; border:1px #7f7f7f inset; width:240px; height:65px; margin-top:5px; margin-left:5px; position:absolute;"></div>
+						<div id="sequenceFilterMessage" style="width:170px; height:65px; margin-top:5px; margin-left:60px; position:absolute;"></div>
+						<div style="position:absolute; margin-top:5px; margin-left:15px; width:220px; height:65px; background-color:#ffaaaa; text-align:center; visibility:hidden" class="formErrors" id="errorBlock">
+							<div style="margin:10px; font-size:15px; font-weight:bold;">Sorry, an error occured</div>
+							<a href="#" id="errorAlertAnchor">Click for technical details</a> <br />&nbsp;
+						</div>
+						<div id="exportFormatDetails" style="display:none; padding:5px; background-color:#ffffff; border:1px #7f7f7f inset; width:240px; height:65px; margin-top:5px; margin-left:5px; position:absolute;"></div>
 
-							<div style="width:260px; position:absolute; margin-top:90px; text-align:right;">
-								<table cellspacing="2" cellpadding="0" width="100%">
-									<tr>
-										<td width="90%" align="right"><div id="progressDiv" style="width:195px;"></div></td>
-										<td><input type="button" disabled onclick="abortCurrentOperation();" value="Abort" id="abortButton"></td>
-									</tr>
-								</table>
-							</div>
-						</td>
-					</tr>
-				</table>
-			</form>
+						<div style="width:260px; position:absolute; margin-top:90px; text-align:right;">
+							<table cellspacing="2" cellpadding="0" width="100%">
+								<tr>
+									<td width="90%" align="right"><div id="progressDiv" style="width:195px;"></div></td>
+									<td><input type="button" disabled onclick="abortCurrentOperation();" value="Abort" id="abortButton"></td>
+								</tr>
+							</table>
+						</div>
+					</td>
+				</tr>
+			</table>
 
 			<div id="LoadingOverlay"></div>
 			<div id="variantResultDiv">
