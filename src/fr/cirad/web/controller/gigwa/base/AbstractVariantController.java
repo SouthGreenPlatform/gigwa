@@ -1455,7 +1455,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			AbstractMarkerOrientedExportHandler markerOrientedExportHandler = AbstractMarkerOrientedExportHandler.getMarkerOrientedExportHandlers().get(sExportFormat);
 			
 			GenotypingProject project = mongoTemplate.findById(projId, GenotypingProject.class);
-			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants" + "." + (individualOrientedExportHandler != null ? individualOrientedExportHandler : markerOrientedExportHandler).getExportFileExtension();
+			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants_" + sExportFormat + "." + (individualOrientedExportHandler != null ? individualOrientedExportHandler : markerOrientedExportHandler).getExportFileExtension();
 			OutputStream os;
 			LOG.info((fKeepExportOnServer ? "On-server" : "Direct-download") + " export requested: " + sShortProcessID);
 			if (fKeepExportOnServer)
