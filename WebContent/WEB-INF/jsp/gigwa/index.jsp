@@ -68,7 +68,15 @@
 
 <c:set var="defaultViewURL" value="<%=AbstractVariantController.variantSearchPageURL%>" />
 
-<img src="../img/logo.png" height="25" style="position:absolute; margin-top:-2px;">
+<div style="position:absolute; margin-top:-2px;">
+<img src="../img/logo.png" height="25">
+<%
+java.util.Properties prop = new java.util.Properties();
+prop.load(getServletContext().getResourceAsStream("/META-INF/MANIFEST.MF"));
+%>
+v<%= prop.getProperty("Implementation-version").replace("-RELEASE", "") %>
+</div>
+
 <div style="float:right; margin-top:-6px;">
 	<a style="margin-right:20px;" href="#" onclick="showTutorial();" title='Online tutorial'><img src='../img/tutorial.gif' border='0'></a>
 
@@ -107,7 +115,7 @@
 
 </div>
 
-<form style="margin-left:120px;">
+<form style="margin-left:250px;">
 	Database:
 	<select id="modules" onchange="applySelection();" style="margin-right:40px;">
 		<option value="">- Select one -</option>
