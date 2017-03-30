@@ -192,7 +192,7 @@
 
 <body bgcolor="#f0f0f0" onload="$('#importButton').removeAttr('disabled'); $('form select').removeAttr('disabled'); $('form input').removeAttr('disabled'); $('form')[0].reset(); $('input[name=technology]').blur(); $('input[name=clearProjectData]').attr('disabled', 'disabled');">
 <div style="width:100%;">
-	<div style="width:585px; margin:auto;">
+	<div style="width:650px; margin:auto;">
 	<h2>Data import</h2>
 	<blockquote>Import is supported via specification of preliminarily uploaded files. Make sure your file is in a location that is accessible to the user owning the application server process.</blockquote>
 	<form>
@@ -254,10 +254,9 @@
 		</tr>
 
 		<tr bgcolor='#ffeeee' height="53">
-		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>(VCF or HapMap)</span></th>
+		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>Supported formats:<br/>VCF, HapMap, PLINK</span></th>
 		<td colspan="2" align="center">
-		<input type="text" name="mainFile" style="width:460px;" /><br />(please provide absolute path on webserver filesystem)
-		</td>
+		<input type="text" name="mainFile" style="width:460px;" value="" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK f		</td>
 		</tr>
 	</table>
 	<p>
