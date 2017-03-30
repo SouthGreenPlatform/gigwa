@@ -847,7 +847,7 @@
 								onfocus="this.select();" />%
 						</div>
 
-						<div id="filterAlternateAllele" style="position:absolute; top:80px; margin-left:240px; white-space:nowrap; text-align:right;">
+						<div id="filterAlternateAllele" style="position:absolute; top:90px; margin-left:240px; white-space:nowrap; text-align:right;">
 							<b>Number of alleles:</b> <br /> <select size="4" multiple id="alleleCount" name="alleleCount" onchange="dirtyForm(); disableBiAllelicSpecificQueriesIfNeeded();"></select>
 						</div>
 
