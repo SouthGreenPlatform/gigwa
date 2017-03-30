@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.ModelAndView;
 
+import fr.cirad.mgdb.importing.BrapiImport;
 import fr.cirad.mgdb.importing.HapMapImport;
 import fr.cirad.mgdb.importing.PlinkImport;
 import fr.cirad.mgdb.importing.VcfImport;
@@ -241,7 +242,7 @@ public class GigwaController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(genotypingDataImportSubmissionURL)
-	public @ResponseBody String importGenotypingData(HttpServletRequest request, @RequestParam("host") final String sHost, @RequestParam("module") final String sModule, @RequestParam("project") final String sProject, @RequestParam("run") final String sRun, @RequestParam(value="technology", required=false) final String sTechnology, @RequestParam(value="clearProjectData", required=false) final Boolean fClearProjectData, @RequestParam("mainFile") final String dataFile) throws Exception
+	public @ResponseBody String importGenotypingData(HttpServletRequest request, @RequestParam("host") final String sHost, @RequestParam("module") final String sModule, @RequestParam("project") final String sProject, @RequestParam("run") final String sRun, @RequestParam(value="technology", required=false) final String sTechnology, @RequestParam(value="clearProjectData", required=false) final Boolean fClearProjectData, @RequestParam("mainFile") final String dataFile, @RequestParam(value="brapiParameter_mapDbId", required=false) final String sBrapiMapDbId, @RequestParam(value="brapiParameter_studyDbId", required=false) final String sBrapiStudyDbId) throws Exception
 	{
 		final String sNormalizedModule = Normalizer.normalize(sModule, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").replaceAll(" ", "_");
 		final String processId = "IMPORT__GENOTYPING_DATA__" + sNormalizedModule + "__" + sProject + "__" + sRun + "__" + System.currentTimeMillis();
@@ -294,57 +295,75 @@ public class GigwaController
 			if (fDatasourceExists)
 				new Thread() {
 					public void run() {
-						Scanner scanner = null;
-						try
-						{
-							scanner = new Scanner(new File(trimmedDataFile.trim()));
-							if (scanner.hasNext())
+			            if (sBrapiMapDbId != null && sBrapiStudyDbId != null && dataFile.trim().toLowerCase().startsWith("http"))
+			                try
+			                {
+			                  new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile.trim(), sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+			                }
+			                catch (Exception e)
+			                {
+			                  LOG.error("Error importing " + dataFile, e);
+			                  progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
+			                  if (!fDatasourceAlreadyExisted)
+			                  {
+			                    MongoTemplateManager.removeDataSource(sNormalizedModule, true);
+			                    LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
+			                  }
+			                }
+			              else
+			              {
+							Scanner scanner = null;
+							try
 							{
-								String sLowerCaseFirstLine = scanner.next().toLowerCase();
-								if (sLowerCaseFirstLine.startsWith("rs#"))
-									new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-								else if (trimmedDataFile.toLowerCase().endsWith(".ped"))
+								scanner = new Scanner(new File(trimmedDataFile.trim()));
+								if (scanner.hasNext())
 								{
-									File mapFile= new File(trimmedDataFile.substring(0, trimmedDataFile.length() - 3) + "map");
-									if (mapFile.exists())
-										new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+									String sLowerCaseFirstLine = scanner.next().toLowerCase();
+									if (sLowerCaseFirstLine.startsWith("rs#"))
+										new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+									else if (trimmedDataFile.toLowerCase().endsWith(".ped"))
+									{
+										File mapFile= new File(trimmedDataFile.substring(0, trimmedDataFile.length() - 3) + "map");
+										if (mapFile.exists())
+											new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										else
+											throw new Exception("For imports in PLINK format, a .map file is expected to be found along the .bed file (with same names apart from the extension)");
+									}
 									else
-										throw new Exception("For imports in PLINK format, a .map file is expected to be found along the .bed file (with same names apart from the extension)");
+									{
+										Boolean fIsBCF = null;
+										if (sLowerCaseFirstLine.startsWith("##fileformat=vcf"))
+											fIsBCF = false;
+										else if (trimmedDataFile.toLowerCase().endsWith(".bcf"))
+											fIsBCF = true;	// we support BCF2 only
+										if (fIsBCF != null)
+											new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										else
+											throw new Exception("Unknown file format: " + trimmedDataFile);
+									}
 								}
 								else
-								{
-									Boolean fIsBCF = null;
-									if (sLowerCaseFirstLine.startsWith("##fileformat=vcf"))
-										fIsBCF = false;
-									else if (trimmedDataFile.toLowerCase().endsWith(".bcf"))
-										fIsBCF = true;	// we support BCF2 only
-									if (fIsBCF != null)
-										new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-									else
-										throw new Exception("Unknown file format: " + trimmedDataFile);
+								{	// looks like a compressed file
+									BlockCompressedInputStream.assertNonDefectiveFile(new File(trimmedDataFile));
+									new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 								}
 							}
-							else
-							{	// looks like a compressed file
-								BlockCompressedInputStream.assertNonDefectiveFile(new File(trimmedDataFile));
-								new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-							}
-						}
-						catch (Exception e)
-						{
-							LOG.error("Error importing " + trimmedDataFile, e);
-							progress.setError("Error importing " + trimmedDataFile + ": " + ExceptionUtils.getStackTrace(e));
-							if (!fDatasourceAlreadyExisted)
+							catch (Exception e)
 							{
-								MongoTemplateManager.removeDataSource(sNormalizedModule, true);
-								LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
+								LOG.error("Error importing " + trimmedDataFile, e);
+								progress.setError("Error importing " + trimmedDataFile + ": " + ExceptionUtils.getStackTrace(e));
+								if (!fDatasourceAlreadyExisted)
+								{
+									MongoTemplateManager.removeDataSource(sNormalizedModule, true);
+									LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
+								}
 							}
-						}
-						finally
-						{
-							if (scanner != null)
-								scanner.close();
-						}
+							finally
+							{
+								if (scanner != null)
+									scanner.close();
+							}
+			              }
 					}
 				}.start();
 		}

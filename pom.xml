@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
     <properties>
-	    <project.version>1.1-RELEASE</project.version>
+	    <project.version>1.5-SNAPSHOT</project.version>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -22,6 +22,12 @@
 	</developers>
       
 	<dependencies>
+
+		<dependency> 
+		  <groupId>fr.cirad</groupId>
+		  <artifactId>BrapiImpl</artifactId>
+		  <version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 		<dependency> 
 			<groupId>fr.cirad</groupId>
