@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -417,7 +418,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(variantSearchPageURL)
-	protected ModelAndView setupSearchPage(final HttpServletRequest request, @RequestParam("module") String sModule) throws Exception
+	protected ModelAndView setupSearchPage(final HttpServletRequest request, final HttpServletResponse response,  @RequestParam("module") String sModule) throws Exception
 	{
 		new Thread()
 		{
@@ -455,7 +456,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			exportFormats.put(exportHandler.getExportFormatName(), info);
 		}
 		mav.addObject("exportFormats", exportFormats);
-		mav.addObject("genomeBrowserURL", appConfig.get("genomeBrowser-" + sModule));
+		String genomeBrowserURL = appConfig.get("genomeBrowser-" + sModule);
+		mav.addObject("genomeBrowserURL", genomeBrowserURL == null ? "" : genomeBrowserURL);
 		return mav;
 	}
 

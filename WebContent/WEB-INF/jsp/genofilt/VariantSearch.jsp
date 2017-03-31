@@ -211,7 +211,7 @@
 						   	for (var i=jsonResult[key].length; i<=$("#variantResultTable th:visible").size(); i++)
 						   		rowContents += "<td></td>";
 
-						   	var genomeBrowserLink = (typeof viewGeneInGenomeBrowser == 'undefined') ? "" : "<a href=\"javascript:viewGeneInGenomeBrowser('" + jsonResult[key][1] + ":" + jsonResult[key][2] + ".." + (jsonResult[key][3] == "" ? jsonResult[key][2] : jsonResult[key][3]) + "');\" title='Click to browse genome'><img src='../img/icon_genome_browser.gif'></a>";
+						   	var genomeBrowserLink = ($("input#genomeBrowserURL").val() == "") ? "" : "<a href=\"javascript:viewGeneInGenomeBrowser('" + jsonResult[key][1] + ":" + jsonResult[key][2] + ".." + (jsonResult[key][3] == "" ? jsonResult[key][2] : jsonResult[key][3]) + "');\" title='Click to browse genome'><img src='../img/icon_genome_browser.gif'></a>";
 							rowContents += "<td style='border:none;' nowrap><a href='javascript:showDetails(\"" + encodeURIComponent(jsonResult[key][jsonResult[key].length - 1]) + "\", \"" + getSelectedIndividuals() + "\");' title='Variant details' onclick='selectedRowId=\"" + jsonResult[key][jsonResult[key].length - 1] + "\"; highlightSelectedVariant();'><img src='../img/magnifier.gif'></a>" + genomeBrowserLink + "</td>";
 							newContents += "<tr class='hideable'>" + rowContents + "</tr>";
 					   		nAddedRows++;
@@ -784,20 +784,29 @@
 		if (individualSubSet.length == 1 && individualSubSet[0] == "")
 			individualSubSet = null;
 		
-		<c:if test="${genomeBrowserURL ne null}">
+		var defaultGenomeBrowserURL = "${genomeBrowserURL}";
+		if ($.cookie("genomeBrowserURL-${param.module}") == null)
+			$.cookie("genomeBrowserURL-${param.module}", defaultGenomeBrowserURL)
+
 		function viewGeneInGenomeBrowser(variantPos)
 		{
-	        $("#genomeBrowserDialog").modal({
-	        	opacity:80,
-	        	overlayCss:{backgroundColor:"#111"}
-	        });
-	        $("#genomeBrowserFrame").attr('src', "${genomeBrowserURL}".replace(/\*/g, variantPos));
+			if ($("input#genomeBrowserURL").val() != "")
+			{
+		        $("#genomeBrowserDialog").modal({
+		        	opacity:80,
+		        	overlayCss:{backgroundColor:"#111"}
+		        });
+		        $("#genomeBrowserFrame").attr('src', $("input#genomeBrowserURL").val().replace(/\*/g, variantPos));
+			}
 		}
-		</c:if>
+		function configureGenomeBrowser()
+		{
+			$("div#genomeBrowserConfigDiv").toggle();
+		}
 		</script>
 </head>
 
-<body style='background-color:#f0f0f0;' onload="applyProjectSelectionToProjectDependantWidgets(); displaySequenceFilterMessage(); applyIndividualSelection(); checkBrowsingBoxAccordingToCookie(); $('input#browsingAndExportingEnabled').change(); $('select#exportFormat').change();">
+<body style='background-color:#f0f0f0;' onload="applyProjectSelectionToProjectDependantWidgets(); displaySequenceFilterMessage(); applyIndividualSelection(); checkBrowsingBoxAccordingToCookie(); $('input#genomeBrowserURL').val(defaultGenomeBrowserURL); $('input#browsingAndExportingEnabled').change(); $('select#exportFormat').change();">
 	<c:choose>
 		<c:when test="${fn:length(projects) > 0}">
 			<table width="970" cellpadding='0' cellspacing='2'>
@@ -882,6 +891,14 @@
 						<div style="height:45px;">
 							<div style="width:250px; position:absolute; font-size:18px; font-weight:bold; padding:10px; text-align:center;" id="resultCountDiv"></div>
 							<div style="width:260px; position:absolute; white-space:nowrap; background-color:#f8f8f8;" id="exportLaunchDiv">
+								<a href="#" onclick="configureGenomeBrowser();"><img style="position:absolute; float:left; margin-top:-5px; cursor:pointer; cursor:hand;" title="Click to configure a genome browser for this database" src="../img/icon_genome_browser.gif" height="20" width="20" /></a>
+								<div id="genomeBrowserConfigDiv" style="display:none; position:absolute; margin-left:-370px; background-color:#b7e2f0; border:1px dashed #8888ff; padding:5px;">
+									<b>Please specify a URL for the genome browser you want to use</b>
+									<br/><i>indicate * wherever variant location (chr:start..end) needs to appear</i>
+									<br/><input type="text" style="width:340px;" id="genomeBrowserURL">
+									<br/><input type="button" style="float:right;" value="Apply" onclick='if ($("input#genomeBrowserURL").val() == "") $("input#genomeBrowserURL").val(defaultGenomeBrowserURL); $.cookie("genomeBrowserURL-${param.module}", $("input#genomeBrowserURL").val()); $("div#genomeBrowserConfigDiv").hide();' />
+									<br/>(Clear box to revert to default)
+								</div>
 								<c:if test="${exportFormats.VCF ne null}">
 									<img style="position:absolute; float:left; margin-top:-5px; margin-left:30px; cursor:pointer; cursor:hand;" src="../img/lightbulb.gif" title="TIP: You may view selected variants in their genomic context by starting IGV, ticking the 'Keep export file(s) on server' box and exporting in VCF format" />
 								</c:if>
