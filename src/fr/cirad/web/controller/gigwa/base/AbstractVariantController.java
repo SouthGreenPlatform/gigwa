@@ -1439,9 +1439,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		DBObject query = count == nTempVarCount ? null : new BasicDBObject(VariantData.FIELDNAME_VERSION, new BasicDBObject("$exists", true));
 		String sequenceField = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE;
 		String startField = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE;
-//		BasicDBObject sort = new BasicDBObject("_id", 1);
-//		BasicDBObject sort = new BasicDBObject(sequenceField, 1).append(startField, 1);
-		BasicDBObject sort = null;	/*FIXME: see how much enabling sorting slows down exports */
+		BasicDBObject sort = new BasicDBObject("_id", 1);	/* necessary for MgdbDao.getSampleGenotypes to work properly */
 		DBObject projection = new BasicDBObject();
 		projection.put(sequenceField, 1);
 		projection.put(startField, 1);
