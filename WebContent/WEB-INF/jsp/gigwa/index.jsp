@@ -19,8 +19,14 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <html>
-
+<%
+java.util.Properties prop = new java.util.Properties();
+prop.load(getServletContext().getResourceAsStream("/META-INF/MANIFEST.MF"));
+String appVersion = prop.getProperty("Implementation-version");
+appVersion = appVersion == null ? "" : ("v" + prop.getProperty("Implementation-version").replace("-RELEASE", ""));
+%>
 <head>
+	<title>Gigwa <%= appVersion %></title>
 	<link rel="shortcut icon" href="../favicon.png" />
 	<link rel ="stylesheet" type="text/css" href="../css/main.css" title="style">
 	<script type="text/javascript" src="../js/jquery-1.8.2.min.js"></script>
@@ -69,12 +75,7 @@
 <c:set var="defaultViewURL" value="<%=AbstractVariantController.variantSearchPageURL%>" />
 
 <div style="position:absolute; margin-top:-2px;">
-<img src="../img/logo.png" height="25">
-<%
-java.util.Properties prop = new java.util.Properties();
-prop.load(getServletContext().getResourceAsStream("/META-INF/MANIFEST.MF"));
-%>
-v<%= prop.getProperty("Implementation-version").replace("-RELEASE", "") %>
+<img src="../img/logo.png" height="25"><%= appVersion %>
 </div>
 
 <div style="float:right; margin-top:-6px;">
