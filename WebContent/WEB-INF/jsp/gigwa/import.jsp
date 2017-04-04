@@ -256,7 +256,7 @@
 		<tr bgcolor='#ffeeee' height="53">
 		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>Supported formats:<br/>VCF, HapMap, PLINK</span></th>
 		<td colspan="2" align="center">
-		<input type="text" name="mainFile" style="width:460px;" value="" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK f		</td>
+		<input type="text" name="mainFile" style="width:460px;" value="" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK format)</td>
 		</tr>
 	</table>
 	<p>
