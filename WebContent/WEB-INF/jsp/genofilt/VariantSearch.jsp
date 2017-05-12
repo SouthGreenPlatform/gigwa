@@ -40,6 +40,7 @@
 		var currentProgressQueryID = null;
 		var isFirstProgressCheck;
 		var interfaceID = "${param.module}|${pageContext.session.id}|" + new Date().getTime();
+		var ploidy = 2;	// default
 		
 		function isBusySearching(fBusy)
 		{
@@ -626,35 +627,35 @@
 		
 		function applyIndividualSelection()
 		{
-			var op = document.getElementById('gtCode').getElementsByTagName('option');
+			var selectWidget = document.getElementById('gtCode');
+			var opt = selectWidget.getElementsByTagName('option');
 			var selectIndividualCSV = getSelectedIndividuals();
 			var nSelectedIndividualCount = selectIndividualCSV == "" ? 0 :selectIndividualCSV.split(";").length;
-			$("#individualCount").html(" (" + (nSelectedIndividualCount == 0 ? $("#individuals option:enabled").size() :nSelectedIndividualCount) + " / " + $("#individuals option:enabled").size() + ")");
+			if (nSelectedIndividualCount == 0)
+				nSelectedIndividualCount = $("#individuals option:enabled").size();
+			$("#individualCount").html(" (" + nSelectedIndividualCount + " / " + $("#individuals option:enabled").size() + ")");
 			
-			for (var i=1; i<5; i++)
-			{
-				if (nSelectedIndividualCount == 1 && op[i].selected)
-					op[0].selected = true;
-			
-				op[i].disabled = nSelectedIndividualCount == 1;
-			}		
+			for (var i=1; i<5; i++)		
+				opt[i].disabled = nSelectedIndividualCount == 1;
 
-			if (nSelectedIndividualCount < 3)
-				op[11].disabled = true;
+			opt[11].disabled = nSelectedIndividualCount < 3;
+			
+			if (opt[selectWidget.selectedIndex].disabled)
+				opt[0].selected = true;
+			
+			disableBiAllelicSpecificQueriesIfNeeded();
 		}	
 		
  		function disableBiAllelicSpecificQueriesIfNeeded()
  		{
-			var opt = document.getElementById('gtCode').getElementsByTagName('option');
+			var selectWidget = document.getElementById('gtCode');
+			var opt = selectWidget.getElementsByTagName('option');
 			var alleleNumber = $('#alleleCount option').length == 1 ? $('#alleleCount option:eq(0)').val() :getSelectedNumberOfAlleles(true);
-			if (ploidy != 2 || alleleNumber != 2)
- 			{
-				opt[11].disabled = true;
-				if (opt[11].selected)
-					opt[0].selected = true;
-			}
-			else
-				opt[11].disabled = false;
+			opt[11].disabled = ploidy != 2 || alleleNumber != 2;
+			
+			if (opt[selectWidget.selectedIndex].disabled)
+				opt[0].selected = true;
+			
  			$('#gtCode').change();
  		}		
 		
