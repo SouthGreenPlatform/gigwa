@@ -45,8 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -195,48 +195,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	/** The Constant distinctSequencesInSelectionURL. */
 	static final public String distinctSequencesInSelectionURL = "/" + FRONTEND_URL + "/distinctSequencesInSelection.json";
 
-	/** The Constant GENOTYPE_CODE_LABEL_ALL. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL = "Any";
-
-	/** The Constant GENOTYPE_CODE_LABEL_NOT_ALL_SAME. */
-	static final protected String GENOTYPE_CODE_LABEL_NOT_ALL_SAME = "Not all same";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_SAME. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_SAME = "All same";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_DIFFERENT. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_DIFFERENT = "All different";
-
-	/** The Constant GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT. */
-	static final protected String GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT = "Not all different";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF = "All Homozygous Ref";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF. */
-	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF = "At least one Homozygous Ref";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR = "All Homozygous Var";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR. */
-	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR = "At least one Homozygous Var";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS = "All Heterozygous";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS. */
-	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS = "At least one Heterozygous";
-
-	/** The Constant GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY. */
-	static final protected String GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY = "Without abnormal heterozygosity";
-
-	/** The Constant genotypeCodeToDescriptionMap. */
-	static final protected HashMap<String, String> genotypeCodeToDescriptionMap = new LinkedHashMap<String, String>();
-
-	/** The Constant genotypeCodeToQueryMap. */
-	static final protected HashMap<String, String> genotypeCodeToQueryMap = new HashMap<String, String>();
-
 	/** The Constant MESSAGE_TEMP_RECORDS_NOT_FOUND. */
 	static final public String MESSAGE_TEMP_RECORDS_NOT_FOUND = "Unable to find temporary records: please SEARCH again!";
 
@@ -245,42 +203,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 	/** The Constant NUMBER_OF_SIMULTANEOUS_QUERY_THREADS. */
 	static final private int NUMBER_OF_SIMULTANEOUS_QUERY_THREADS = 5;
-
-	/** The nf. */
-	static protected NumberFormat nf = NumberFormat.getInstance();
 	
     @Autowired
     private AppConfig appConfig;
-
-	static
-	{
-		nf.setMaximumFractionDigits(4);
-
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL, "This will return all variants whithout applying any filters");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_SAME, "This will return variants where not all selected individuals have the same genotype");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_SAME, "This will return variants where all selected individuals have the same genotype");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_DIFFERENT, "This will return variants where none of the selected individuals have the same genotype");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT, "This will return variants where some of the selected individuals have the same genotypes");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF, "This will return variants where selected individuals are all homozygous with the reference allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF, "This will return variants where selected individuals are at least one homozygous with the reference allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR, "This will return variants where selected individuals are all homozygous with an alternate allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR, "This will return variants where selected individuals are at least one homozygous with an alternate allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS, "This will return variants where selected individuals are all heterozygous");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS, "This will return variants where selected individuals are at least one heterozygous");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY, "This will return variants where each allele found in heterozygous genotypes is also found in homozygous ones (only for diploid, bi-allelic data)");
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL, null);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_SAME, "$eq");
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_SAME, "$eq" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_NEGATION_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_DIFFERENT, "$ne");
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT, "$ne" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_NEGATION_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF, "^0(/0)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF, "^0(/0)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR, "^([1-9][0-9]*)(/\\1)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR, "^([1-9][0-9]*)(/\\1)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS, "([0-9])([0-9])*(/(?!\\1))+([0-9])*|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS, "([0-9])([0-9])*(/(?!\\1))+([0-9])*|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY, GenotypingDataQueryBuilder.AGGREGATION_QUERY_WITHOUT_ABNORMAL_HETEROZYGOSITY);
-	}
 
 	/**
 	 * Gets the project ploidy level.
@@ -406,7 +331,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 */
 	public static String getQueryForGenotypeCode(String gtCode)
 	{
-		return genotypeCodeToQueryMap.get(gtCode);
+		return GenotypingDataQueryBuilder.getGenotypeCodeToQueryMap().get(gtCode);
 	}
 
 	/**
@@ -439,7 +364,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("projects", getProjectIdToNameMap(sModule));
-		mav.addObject("genotypeCodes", genotypeCodeToDescriptionMap);
+		mav.addObject("genotypeCodes", GenotypingDataQueryBuilder.getGenotypeCodeToDescriptionMap());
 		TreeMap<String /*format name*/, HashMap<String /*info field name ("desc", "supportedVariantTypes", ...*/, String /*info field value*/>> exportFormats = new TreeMap<String, HashMap<String, String>>();
 		for (IExportHandler exportHandler : AbstractIndividualOrientedExportHandler.getIndividualOrientedExportHandlers().values())
 		{
@@ -756,7 +681,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				long before = System.currentTimeMillis();
 
 				progress.addStep("Counting matching variants");
-				String sRegexOrAggregationOperator = genotypeCodeToQueryMap.get(gtCode);
+				String sRegexOrAggregationOperator = GenotypingDataQueryBuilder.getGenotypeCodeToQueryMap().get(gtCode);
 
 				List<String> alleleCountList = alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";"));
 
@@ -833,6 +758,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			        	selectedIndividualList = getIndividualsInDbOrder(sModule, projId);
 
 			        GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(sModule, projId, tmpVarColl, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects, selectedIndividualList, getProjectEffectAnnotations(sModule, projId), new ArrayList<String>());
+			        if (alleleCountList != null)
+			        	genotypingDataQueryBuilder.setMaxAlleleCount(Collections.max((Collection<? extends Integer>) alleleCountList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList())));
 			        try
 			        {
 						final int nChunkCount = genotypingDataQueryBuilder.getNumberOfQueries();
@@ -854,7 +781,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 							genotypingDataPipeline.add(new BasicDBObject("$group", groupFields));
 
 							if (i == 0 && tmpVarColl.count() <= 5)
-								LOG.debug(genotypingDataPipeline);
+								LOG.debug(genotypingDataPipeline.subList(1, genotypingDataPipeline.size()));
 
 							if (progress.hasAborted())
 							{
@@ -992,9 +919,10 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		final DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, progress.getProcessId(), false);
 
-		String sRegexOrAggregationOperator = genotypeCodeToQueryMap.get(gtCode);
+		String sRegexOrAggregationOperator = GenotypingDataQueryBuilder.getGenotypeCodeToQueryMap().get(gtCode);
     	boolean fNeedToFilterOnGenotypingData = needToFilterOnGenotypingData(sModule, projId, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects);
-		final BasicDBList variantQueryDBList = buildVariantDataQuery(sModule, projId, selectedVariantTypes.length() == 0 ? null : Arrays.asList(selectedVariantTypes.split(";")), selectedSequenceList, minposition, maxposition, alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";")));
+    	List<String> alleleCountList = alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";"));
+		final BasicDBList variantQueryDBList = buildVariantDataQuery(sModule, projId, selectedVariantTypes.length() == 0 ? null : Arrays.asList(selectedVariantTypes.split(";")), selectedSequenceList, minposition, maxposition, alleleCountList);
 
 		if (!variantQueryDBList.isEmpty() && tmpVarColl.count() == 0 /* otherwise we kept the preliminary list from the count procedure */)
 		{	// apply filter on variant features
@@ -1028,6 +956,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			final AtomicInteger finishedThreadCount = new AtomicInteger(0);
 			final ConcurrentSkipListSet<Comparable> allVariantsThatPassRunFilter = new ConcurrentSkipListSet<Comparable>();
 			final GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(sModule, projId, tmpVarColl, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects, selectedIndividuals == null || selectedIndividuals.length() == 0 ? getIndividualsInDbOrder(sModule, projId) : Arrays.asList(selectedIndividuals.split(";")), getProjectEffectAnnotations(sModule, projId), new ArrayList<String>());
+			if (alleleCountList != null)
+				genotypingDataQueryBuilder.setMaxAlleleCount(Collections.max((Collection<? extends Integer>) alleleCountList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList())));
 	        try
 	        {
 				final int nChunkCount = genotypingDataQueryBuilder.getNumberOfQueries();
