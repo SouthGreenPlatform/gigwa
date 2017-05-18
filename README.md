@@ -4,10 +4,10 @@ Gigwa aims at managing genomic and genotyping data from NGS analyses. It is a to
 
 Try Gigwa online with public datasets at http://gigwa.southgreen.fr/
 
-##v1.1 is out! Check the wiki:
+## v1.1 is out! Check the wiki:
 https://github.com/SouthGreenPlatform/gigwa/wiki
 
-##Developer instructions
+## Developer instructions
 
 The source code is available in this repository in the structure of an Eclipse "dynamic web project". It uses Maven for dependency management and requires the following dependencies to be present in your workspace :
 
