@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	
     <properties>
-	    <project.version>1.1-RELEASE</project.version>
-	    <mgdb.version>1.1-RELEASE</mgdb.version>
-	    <mgdb_export.version>1.1-RELEASE</mgdb_export.version>
+	    <project.version>1.2-RELEASE</project.version>
+	    <mgdb.version>1.2-RELEASE</mgdb.version>
+	    <mgdb_export.version>1.2-RELEASE</mgdb_export.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
