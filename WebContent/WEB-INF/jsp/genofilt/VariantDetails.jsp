@@ -23,8 +23,9 @@
 <html>
 
 <head>
-	<link rel ="stylesheet" type="text/css" href="../css/main.css" title="style">
 	<script type="text/javascript" src="../js/jquery-1.8.2.min.js"></script>
+	<script type="text/javascript" src="../js/main.js"></script>
+	<link rel ="stylesheet" type="text/css" href="../css/main.css" title="style">
 	<script type="text/javascript">	
 	function showHideUnselectedIndividuals(tableObj, show)
 	{
@@ -40,12 +41,51 @@
 				$(this).show();
 		});
 	}
+	
+	function markInconsistentGenotypesAsMissing()
+	{
+		var nRunCount = $("table.genotypeTable").length;
+		if (nRunCount < 2)
+			return;	// nothing to compare
+
+		var indivGenotypes = new Array();
+		var tableCounter = 0;
+		$("table.genotypeTable").each(function() {
+			$(this).find("tr:gt(1)").each(function() {
+				var individual = $(this).find("th").text();
+				var genotypes = indivGenotypes[individual];
+				if (genotypes == null)
+					genotypes = new Array();
+
+				var genotype = $(this).find("td:eq(0)").html().trim();
+				if (!arrayContains(genotypes, genotype))
+					genotypes.push(genotype);
+				indivGenotypes[individual] = genotypes;
+
+				if (tableCounter == nRunCount - 1 && Object.keys(genotypes).length > 1)
+					markAsMissingData(individual);
+			});
+			tableCounter++;
+		});
+	}
+	
+	function markAsMissingData(individual)
+	{
+		$("table.genotypeTable").each(function() {
+			$(this).find("tr:gt(1)").each(function() {
+			    if ($.trim($(this).find("th").text()) == individual) {
+			    	$(this).find("td:eq(0)").addClass("missingData");
+					$("div#missingDataLegend").show();
+			    }
+			});
+		});
+	}
 	</script>
 </head>
 
 <jsp:useBean id="variant" scope="page" class="fr.cirad.mgdb.model.mongo.maintypes.VariantData" /><%-- dummy variant just to be able to invoke a static method --%>
 
-<body style='background-color:#e0e0e0; margin:5px; padding:0px; overflow:hidden;'>
+<body style='background-color:#e0e0e0; margin:5px; padding:0px; overflow:hidden;' onload="markInconsistentGenotypesAsMissing();">
 <div style="margin:auto; width:820px; height:390px; overflow-y:auto;">
 <table class="variantDetails" style="width:800px;" border="0" cellpadding="0" cellspacing="0">
 	<tr bgcolor="#eeeeee">
@@ -82,7 +122,7 @@
 		</td>
 		<td colspan="3" align="center" valign="top">		
 			<input type="checkbox" style="margin-top:5px;" name="showHide" value="hide" onclick="showHideUnselectedIndividuals($('#genotypeTable_${runData.key}'), checked);"> Show unselected individuals 
-			<table id="genotypeTable_${runData.key}" style='border:1px dashed #000; background-color:#70ffa0; margin-bottom:10px; margin-top:10px;' cellpadding="3" cellspacing="0">
+			<table id="genotypeTable_${runData.key}" class="genotypeTable" style='border:1px dashed #000; background-color:#70ffa0; margin-bottom:10px; margin-top:10px;' cellpadding="3" cellspacing="0">
 				<tr>
 					<th colspan="50" bgcolor="#eeeeee" title="${run}">Run "${runData.key}"</th>
 				</tr>							
@@ -95,21 +135,19 @@
 					<tr<c:choose><c:when test='${individualMap[individualGenotypes.key]}'> class="selectedIndividual"</c:when><c:otherwise> style="display:none;"</c:otherwise></c:choose>>
 					<th align='left'>${individualGenotypes.key}</th><c:set var="colIndex" value="-1" />					
 					<c:forEach var="aCellData" items="${individualGenotypes.value}"><c:set var="belowThreshold" value="${(headerAdditionalInfo[colIndex] eq 'DP' && aCellData < param.readDepthThreshold) || (headerAdditionalInfo[colIndex] eq 'GQ' && aCellData < param.genotypeQualityThreshold)}" />
-						<td<c:choose><c:when test="${belowThreshold}"> bgcolor="#ff0000"<c:set var="gotMissingData" value="true" /></c:when></c:choose>>
+						<td<c:choose><c:when test="${belowThreshold}"> class="missingData"<c:set var="gotMissingData" value="true" /></c:when></c:choose>>
 						<c:choose><c:when test='${colIndex == -1}'><c:set var="genotype" value="${variant.staticGetAllelesFromGenotypeCode(knownAlleles, aCellData)}" /><c:forEach var="allele" items="${genotype}"><div class='allele'<c:if test="${fn:length(allele) > 5}"> title='size: ${fn:length(allele)}'</c:if>>${allele}</div></c:forEach></c:when>
 						<c:otherwise>${aCellData}</c:otherwise>
 						</c:choose></td>
 					<c:set var="colIndex" value="${colIndex + 1}" /></c:forEach></tr>
 				</c:forEach>
 			</table>
-			<div class="legende">
-			<c:if test="${gotMissingData == true}">
-				<div class="missingData"></div> 
+			<div class="legende">		
+				<div id="missingDataLegend" class="missingData" style='width:20px; height:20px; position:relative; margin-right:160px; top:15px;<c:if test="${!gotMissingData == true}">  display:none;"</c:if>'></div> 
 				<span class="text">Treated as missing data</span>
-			</c:if>
 			</div>
 		</td>
-	</tr>
+	</tr>    
 	<tr>
 	<td colspan="4"><hr/></td>
 	</tr>
