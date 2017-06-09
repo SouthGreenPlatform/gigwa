@@ -64,7 +64,7 @@ function abortOngoingOperation()
 		$.ajax({	// abort previously launched request
 			url:"<c:url value='<%= AbstractVariantController.processAbortURL %>' />",
 			async:false,
-			data:{ processID:currentDensityProcessID },
+			data:{ processID:encodeURIComponent(currentDensityProcessID) },
 			success:function(jsonResult){
 				if (jsonResult == true)
 				{
@@ -95,7 +95,7 @@ function displayChart() {
 	if (currentDensityProcessID != null)
 		abortOngoingOperation();
 
-	currentDensityProcessID = 'density_' + displayedSequence + '_' + displayedVariantType + '_${param.processID}';
+	currentDensityProcessID = decodeURIComponent('density_' + displayedSequence + '_' + displayedVariantType + '_${param.processID}');
 
 	var densityParameters = {module:'${param.module}',project:'${param.project}',keepExportOnServer:'${param.keepExportOnServer}',variantTypes:'${param.variantTypes}',sequences:'${param.sequences}',gtCode:'${param.gtCode}',genotypeQualityThreshold:'${param.genotypeQualityThreshold}',readDepthThreshold:'${param.readDepthThreshold}',missingData:'${param.missingData}',minmaf:'${param.minmaf}',maxmaf:'${param.maxmaf}',minposition:'${param.minposition}',maxposition:'${param.maxposition}',alleleCount:'${param.alleleCount}',geneName:encodeURIComponent('${param.geneName}'.trim().replace(new RegExp(' , ', 'g'), ',')),variantEffects:'${param.variantEffects}',individuals:'${param.individuals}',processID:currentDensityProcessID,displayedSequence:displayedSequence,displayedRangeIntervalCount:displayedRangeIntervalCount,displayedRangeMin:'',displayedRangeMax:''};
 	if (displayedVariantType != "")
