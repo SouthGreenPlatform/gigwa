@@ -18,7 +18,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="fr.cirad.web.controller.gigwa.base.AbstractVariantController" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>  
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 <fmt:setBundle basename="config" />
 
 <fmt:message var="igvDataLoadPort" key="igvDataLoadPort" />
@@ -113,14 +113,17 @@
 							});
 							
 					    	igvGenomeOptions = "<option>&nbsp;</option>";
-					    	var genomeLines = genomeList.responseText.split("\n");
-					    	for (var i=0; i<genomeLines.length; i++)
-					    		if (i > 0 || !genomeLines[i].startsWith("<"))	// skip header
-					    		{
-					    			var genomeFields = genomeLines[i].split("\t");
-					    			if (genomeFields.length == 3)
-					    				igvGenomeOptions += "<option value='" + genomeFields[2] + "'>" + genomeFields[0] + "</option>";
-					    		}
+					    	if (genomeList.responseText != null)
+					    	{
+						    	var genomeLines = genomeList.responseText.split("\n");
+						    	for (var i=0; i<genomeLines.length; i++)
+						    		if (i > 0 || !genomeLines[i].startsWith("<"))	// skip header
+						    		{
+						    			var genomeFields = genomeLines[i].split("\t");
+						    			if (genomeFields.length == 3)
+						    				igvGenomeOptions += "<option value='" + genomeFields[2] + "'>" + genomeFields[0] + "</option>";
+						    		}
+					    	}
 					    	$('div#progressDiv').append("<center><table><tr><th valign='top'>View in IGV within genomic/structural context&nbsp;</th><td align='center'><select id='igvGenome' style='min-width:175px;'>" + igvGenomeOptions + "</select><br/>(you may select a genome to switch to)</td><td valign='top'>&nbsp;<input type='button' value='Send' onclick='sendToIGV();'/></td></tr></table></center>");
 						}
 			    	}
