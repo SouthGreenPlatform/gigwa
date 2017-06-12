@@ -3,26 +3,22 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	
-    <properties>
-	    <project.version>1.2-RELEASE</project.version>
-	    <mgdb.version>1.2-RELEASE</mgdb.version>
-	    <mgdb_export.version>1.2-RELEASE</mgdb_export.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    
-	<groupId>fr.cirad</groupId>
-	<artifactId>gigwa</artifactId>
-	<name>GIGWA</name>
-	<version>${project.version}</version>
-	<description></description>
+    <groupId>fr.cirad</groupId>
+    <artifactId>gigwa</artifactId>
+    <version>1.2-RELEASE</version>
 	<developers>
 		<developer>
 			<name>Guilhem SEMPERE</name>
 		</developer>
 	</developers>
-	<packaging>war</packaging>
-      
+    <packaging>war</packaging> 
+    
+    <properties>
+	    <mgdb.version>1.2-RELEASE</mgdb.version>
+	    <mgdb_export.version>1.2-RELEASE</mgdb_export.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
 	<dependencies>
 
 		<dependency> 
@@ -150,9 +146,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
+                <version>3.0.0</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <warSourceDirectory>WebContent</warSourceDirectory>
 					<archive>
 						<manifestEntries>
 							<Implementation-version>${project.version}</Implementation-version>
