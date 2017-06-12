@@ -207,6 +207,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
     @Autowired
     private AppConfig appConfig;
 
+	private Boolean fAllowDiskUse = null;
+
 	/**
 	 * Gets the project ploidy level.
 	 *
@@ -284,6 +286,12 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	protected abstract List<String> getIndividualsInDbOrder(String sModule, int projId) throws Exception;
+
+	public boolean isAggregationAllowedToUseDisk() {
+		if (fAllowDiskUse == null)
+			fAllowDiskUse = !Boolean.parseBoolean(appConfig.get("forbidMongoDiskUse"));
+		return fAllowDiskUse.booleanValue();
+	}
 
 	/* (non-Javadoc)
 	 * @see fr.cirad.web.controller.gigwa.base.IGigwaViewController#getViewDescription()
@@ -767,7 +775,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 							LOG.debug("Query split into " + nChunkCount);
 
 						final Long[] partialCountArray = new Long[nChunkCount];
-						final Builder aggOpts = AggregationOptions.builder().allowDiskUse(true);
+						final Builder aggOpts = AggregationOptions.builder().allowDiskUse(isAggregationAllowedToUseDisk());
 						final ArrayList<Thread> threadsToWaitFor = new ArrayList<Thread>();
 						final AtomicInteger finishedThreadCount = new AtomicInteger(0);
 
@@ -780,7 +788,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 							groupFields.put("count", new BasicDBObject("$sum", 1));
 							genotypingDataPipeline.add(new BasicDBObject("$group", groupFields));
 
-							if (i == 0 && tmpVarColl.count() <= 5)
+							if (i == 0)
 								LOG.debug(genotypingDataPipeline.subList(1, genotypingDataPipeline.size()));
 
 							if (progress.hasAborted())
@@ -987,7 +995,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 					Thread t = new Thread() {
 						public void run()
 						{
-							Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataPipeline, AggregationOptions.builder().allowDiskUse(true).build());
+							Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataPipeline, AggregationOptions.builder().allowDiskUse(isAggregationAllowedToUseDisk()).build());
 							final ArrayList<Comparable> variantsThatPassedRunFilter = new ArrayList<Comparable>();
 							while (genotypingDataCursor.hasNext())
 								variantsThatPassedRunFilter.add((Comparable) genotypingDataCursor.next().get("_id"));
@@ -1195,7 +1203,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			genotypingDataAggregationParams2.add(new BasicDBObject("$project", project));
 
 //			long beforeQuery = System.currentTimeMillis();
-			Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataAggregationParams2, AggregationOptions.builder().allowDiskUse(true).build());
+			Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataAggregationParams2, AggregationOptions.builder().allowDiskUse(isAggregationAllowedToUseDisk()).build());
 			while (genotypingDataCursor.hasNext())
 			{
 				DBObject record = genotypingDataCursor.next();
