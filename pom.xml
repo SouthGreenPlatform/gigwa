@@ -3,24 +3,22 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	
-    <properties>
-	    <project.version>1.5-SNAPSHOT</project.version>
-        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    
-	<groupId>fr.cirad</groupId>
-	<artifactId>gigwa</artifactId>
-	<name>GIGWA</name>
-	<version>${project.version}</version>
-	<description></description>
+    <groupId>fr.cirad</groupId>
+    <artifactId>gigwa</artifactId>
+    <version>1.2-RELEASE</version>
 	<developers>
 		<developer>
 			<name>Guilhem SEMPERE</name>
 		</developer>
 	</developers>
-      
+    <packaging>war</packaging> 
+    
+    <properties>
+	    <mgdb.version>1.2-RELEASE</mgdb.version>
+	    <mgdb_export.version>1.2-RELEASE</mgdb_export.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
 	<dependencies>
 
 		<dependency> 
@@ -32,13 +30,13 @@
 		<dependency> 
 			<groupId>fr.cirad</groupId>
 			<artifactId>mgdb</artifactId>
-			<version>1.0-RELEASE</version>
+			<version>${mgdb.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>fr.cirad</groupId>
 			<artifactId>mgdb_export</artifactId>
-		    <version>1.0-RELEASE</version>
+		    <version>${mgdb_export.version}</version>
 		</dependency>
 	 	
 		<dependency>
@@ -110,11 +108,22 @@
 			</exclusions>
 	    </dependency>
 	    
-		<dependency>
-		    <groupId>com.fasterxml.jackson.core</groupId>
-		    <artifactId>jackson-databind</artifactId>
-		    <version>2.1.0</version>
-		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.4.5</version>
+        </dependency>
 
 	</dependencies>
 
@@ -137,11 +146,9 @@
 		</repository>
 	</repositories>
 
-
-	<packaging>war</packaging>
-	<build>
-		<plugins>
-			<plugin>
+    <build>
+        <plugins>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
@@ -152,22 +159,48 @@
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>
                 </configuration>
-			</plugin>
-			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-war-plugin</artifactId>
-			    <version>2.6</version>
-				<configuration>
-<!-- 					<webXml>src/main/webapp/WEB-INF/web.xml</webXml> -->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <warSourceDirectory>WebContent</warSourceDirectory>
 					<archive>
 						<manifestEntries>
 							<Implementation-version>${project.version}</Implementation-version>
 						</manifestEntries>
 						<manifestFile>WebContent/META-INF/MANIFEST.MF</manifestFile>
 					</archive>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${endorsed.dir}</outputDirectory>
+                            <silent>true</silent>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>javax</groupId>
+                                    <artifactId>javaee-endorsed-api</artifactId>
+                                    <version>7.0</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

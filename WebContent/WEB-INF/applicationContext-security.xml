@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:secur="http://www.springframework.org/schema/security"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+       xmlns:secur="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+       					http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
 
 	
 	<!-- Contents of this file are only used if secure mode has been activated in web.xml -->
-	
+
+	<context:component-scan base-package="fr.cirad.manager.web.security" />
+		
 	<secur:http request-matcher="regex" pattern="^.*/Authentication\.jsp.*$" security="none" />
 	<secur:http request-matcher="regex" pattern="^.*/WEB-INF\/jsp\/error\/403\.jsp.*$" security="none" />
 	<secur:http request-matcher="regex" pattern="^.*/css/.*$" security="none" />
@@ -26,7 +30,7 @@
 	  <secur:logout logout-success-url="/Authentication.jsp" invalidate-session="true" />  
 	</secur:http>
 	
-	<secur:authentication-manager erase-credentials="false">
+	<secur:authentication-manager alias="authenticationManager" erase-credentials="false">
 	  <secur:authentication-provider user-service-ref='userDetailsService'>
 <!-- 	  	<secur:password-encoder hash="md5" /> -->
 	  </secur:authentication-provider>
