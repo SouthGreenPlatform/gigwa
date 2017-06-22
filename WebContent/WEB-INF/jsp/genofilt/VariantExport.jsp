@@ -51,7 +51,7 @@
 		
 		function checkProcessProgress(processID)
 		{
-			$.getJSON('<c:url value="<%= AbstractVariantController.progressIndicatorURL %>" />', { module:'${param.module}',processID:processID }, function(jsonResult){
+			$.getJSON('<c:url value="<%= AbstractVariantController.progressIndicatorURL %>" />', { module:'${param.module}',processID:encodeURIComponent(processID) }, function(jsonResult){
 				if (jsonResult != null)
 				{
 					if (jsonResult['error'] != null)
