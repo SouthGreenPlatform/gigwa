@@ -31,6 +31,10 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>SpringMvcDispatchingServlet</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>SpringMvcDispatchingServlet</servlet-name>
 		<url-pattern>*.do</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
