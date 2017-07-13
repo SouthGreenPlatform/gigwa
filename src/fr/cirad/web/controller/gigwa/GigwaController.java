@@ -16,13 +16,10 @@
  *******************************************************************************/
 package fr.cirad.web.controller.gigwa;
 
-import htsjdk.samtools.util.BlockCompressedInputStream;
-
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.text.Normalizer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -42,9 +39,9 @@ import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,7 +56,10 @@ import fr.cirad.mgdb.model.mongo.maintypes.GenotypingProject;
 import fr.cirad.security.ReloadableInMemoryDaoImpl;
 import fr.cirad.tools.ProgressIndicator;
 import fr.cirad.tools.mongo.MongoTemplateManager;
+import fr.cirad.tools.security.TokenManager;
+import fr.cirad.tools.security.base.AbstractTokenManager;
 import fr.cirad.web.controller.gigwa.base.IGigwaViewController;
+import htsjdk.samtools.util.BlockCompressedInputStream;
 
 /**
  * The Class GigwaController.
@@ -92,6 +92,8 @@ public class GigwaController
 	/** The Constant progressIndicatorURL. */
 	static final public String progressIndicatorURL = "/" + FRONTEND_URL + "/progressIndicator.json_";
 
+    @Autowired private TokenManager tokenManager;
+    
 	/**
 	 * Setup menu.
 	 *
@@ -118,23 +120,8 @@ public class GigwaController
 			return new ModelAndView("redirect:" + mainPageURL);
 		}
 
-		Authentication authToken = SecurityContextHolder.getContext().getAuthentication();
-		Collection<? extends GrantedAuthority> authorities = authToken == null ? null : authToken.getAuthorities();
-
-		Collection<String> modules = MongoTemplateManager.getAvailableModules(), authorizedModules = new ArrayList<String>();
-		for (String module : modules)
-		{
-			boolean fHiddenModule = MongoTemplateManager.isModuleHidden(module);
-			boolean fPublicModule = MongoTemplateManager.isModulePublic(module);
-			boolean fAuthentifiedUser = authorities != null;
-			boolean fAdminUser = fAuthentifiedUser && authorities.contains(new GrantedAuthorityImpl("ROLE_ADMIN"));
-			boolean fAuthorizedUser = fAuthentifiedUser && authorities.contains(new GrantedAuthorityImpl("ROLE_USER_" + module));
-			if (fAdminUser || (!fHiddenModule && (!fAuthentifiedUser || fAuthorizedUser || fPublicModule)))
-				authorizedModules.add(module);
-		}
-
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("modules", authorizedModules);
+		mav.addObject("modules", tokenManager.listReadableDBs(SecurityContextHolder.getContext().getAuthentication()));
 		mav.addObject("views", getViewControllers());
 		return mav;
 	}
@@ -193,7 +180,8 @@ public class GigwaController
 	@RequestMapping(importPageURL)
 	public ModelAndView importForm() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
 	{
-		Collection<String> modules = MongoTemplateManager.getAvailableModules();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Collection<String> modules = tokenManager.listWritableDBs(authentication);
 		Map<String /*module*/, Map<String /*project name*/, List<String /*run*/>>> modulesProjectsAndRuns = new LinkedHashMap<String, Map<String, List<String>>>();
 		for (String module : modules)
 		{
@@ -204,7 +192,8 @@ public class GigwaController
 			Query q = new Query();
 			q.fields().exclude(GenotypingProject.FIELDNAME_SEQUENCES);
 			for (GenotypingProject proj : mongoTemplate.find(q, GenotypingProject.class))
-				projectsAndRuns.put(proj.getName(), proj.getRuns());;
+				if (tokenManager.canUserWriteToProject(authentication, module, proj.getId()))
+					projectsAndRuns.put(proj.getName(), proj.getRuns());
 		}
 
 		ModelAndView mav = new ModelAndView();
@@ -275,7 +264,7 @@ public class GigwaController
 
 		if (fAllowedToImport)
 		{	// allowed to continue
-			final String sFinalModule = fIsCalledFromWithinLocalInstance ? sNormalizedModule : ("*" + sNormalizedModule + "*");	// non-admin users (invoking import directly via a URL) are only allowed to create public-and-hidden databases (i.e. for their own use)
+			final String sFinalModule = fIsCalledFromWithinLocalInstance ? sNormalizedModule : ("*" + sNormalizedModule + "*");	// remote users (invoking import directly via a URL) are only allowed to create public-and-hidden databases (i.e. for their own use)
 			if (!fDatasourceExists)
 				try
 				{	// create it
@@ -292,22 +281,25 @@ public class GigwaController
 
 			final String trimmedDataFile = dataFile.trim();
 			if (fDatasourceExists)
+			{
+				final SecurityContext securityContext = SecurityContextHolder.getContext();
 				new Thread() {
 					public void run() {
 						Scanner scanner = null;
 						try
 						{
+							Integer createdProject = null;
 							scanner = new Scanner(new File(trimmedDataFile.trim()));
 							if (scanner.hasNext())
 							{
 								String sLowerCaseFirstLine = scanner.next().toLowerCase();
 								if (sLowerCaseFirstLine.startsWith("rs#"))
-									new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+									createdProject = new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 								else if (trimmedDataFile.toLowerCase().endsWith(".ped"))
 								{
 									File mapFile= new File(trimmedDataFile.substring(0, trimmedDataFile.length() - 3) + "map");
 									if (mapFile.exists())
-										new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										createdProject = new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 									else
 										throw new Exception("For imports in PLINK format, a .map file is expected to be found along the .bed file (with same names apart from the extension)");
 								}
@@ -319,7 +311,7 @@ public class GigwaController
 									else if (trimmedDataFile.toLowerCase().endsWith(".bcf"))
 										fIsBCF = true;	// we support BCF2 only
 									if (fIsBCF != null)
-										new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										createdProject = new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 									else
 										throw new Exception("Unknown file format: " + trimmedDataFile);
 								}
@@ -327,7 +319,12 @@ public class GigwaController
 							else
 							{	// looks like a compressed file
 								BlockCompressedInputStream.assertNonDefectiveFile(new File(trimmedDataFile));
-								new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+								createdProject = new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+							}
+							if (createdProject != null && securityContext.getAuthentication().isAuthenticated())
+							{
+								userDao.setEntityOwnership(sModule, AbstractTokenManager.ENTITY_PROJECT, createdProject, ((User) securityContext.getAuthentication().getPrincipal()).getUsername());
+								tokenManager.reloadUserPermissions(securityContext);
 							}
 						}
 						catch (Exception e)
@@ -347,6 +344,7 @@ public class GigwaController
 						}
 					}
 				}.start();
+			}
 		}
 		return progressIndicatorURL + "?processID=" + processId;
 	}

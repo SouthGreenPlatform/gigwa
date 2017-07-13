@@ -39,9 +39,9 @@
 		var minimumProcessQueryIntervalUnit = 500;
 		var currentProgressQueryID = null;
 		var isFirstProgressCheck;
-		var interfaceID = "${param.module}|${pageContext.session.id}|" + new Date().getTime();
+		var interfaceID = "${token}";
 		var ploidy = 2;	// default
-		
+
 		function isBusySearching(fBusy)
 		{
 			if (fBusy)
@@ -705,7 +705,6 @@
 			$.getJSON('<c:url value="<%= AbstractVariantController.processAbortURL %>" />', { processID:$('#variantExportFrame')[0].contentWindow.exportID }, function(jsonResult){
 				if (jsonResult == true)
 				{
-// 					currentProgressQueryID = null;
 					$("#variantExportFrame").attr('src', "../blank.html");
 				}
 				else
@@ -775,7 +774,7 @@
 			$.ajax({
  				async:false,
 				url:"<c:url value='<%= AbstractVariantController.interfaceCleanupURL %>' />",
-				data:{ module:"${param.module}", processID:currentProgressQueryID }
+				data:{ module:"${param.module}", interfaceID:interfaceID }
 			});
 		}
 
@@ -1017,7 +1016,7 @@
 			<div id="sequenceLoadDialog" align="center" style="margin:15px; width:100%; display:none; position:absolute; top:0px; left:0px; z-index:100;">Loading sequences...</div>
 		</c:when>
 		<c:otherwise>
-			<h3>No variant data is available for this module</h3>
+			<h3>No variant data is available in this database</h3>
 		</c:otherwise>
 	</c:choose>
 

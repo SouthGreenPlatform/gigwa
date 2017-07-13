@@ -16,9 +16,6 @@
  *******************************************************************************/
 package fr.cirad.web.controller.gigwa.base;
 
-import htsjdk.variant.vcf.VCFFormatHeaderLine;
-import htsjdk.variant.vcf.VCFInfoHeaderLine;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -45,31 +42,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.UnmodifiableMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
-import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import com.mongodb.AggregationOptions;
 import com.mongodb.AggregationOptions.Builder;
@@ -80,6 +72,7 @@ import com.mongodb.Cursor;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
 import fr.cirad.mgdb.exporting.IExportHandler;
@@ -87,10 +80,10 @@ import fr.cirad.mgdb.exporting.individualoriented.AbstractIndividualOrientedExpo
 import fr.cirad.mgdb.exporting.markeroriented.AbstractMarkerOrientedExportHandler;
 import fr.cirad.mgdb.model.mongo.maintypes.DBVCFHeader;
 import fr.cirad.mgdb.model.mongo.maintypes.DBVCFHeader.VcfHeaderId;
-import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData.VariantRunDataId;
 import fr.cirad.mgdb.model.mongo.maintypes.GenotypingProject;
 import fr.cirad.mgdb.model.mongo.maintypes.VariantData;
 import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData;
+import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData.VariantRunDataId;
 import fr.cirad.mgdb.model.mongo.subtypes.ReferencePosition;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleGenotype;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleId;
@@ -101,6 +94,9 @@ import fr.cirad.tools.Helper;
 import fr.cirad.tools.ProgressIndicator;
 import fr.cirad.tools.mgdb.GenotypingDataQueryBuilder;
 import fr.cirad.tools.mongo.MongoTemplateManager;
+import fr.cirad.tools.security.TokenManager;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 /**
  * The Class AbstractVariantController.
@@ -110,9 +106,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 	/** The Constant LOG. */
 	protected static final Logger LOG = Logger.getLogger(AbstractVariantController.class);
-
-	/** The exception resolver. */
-	@Autowired private SimpleMappingExceptionResolver exceptionResolver;
 
 	/** The Constant SEQLIST_FOLDER. */
 	static final public String SEQLIST_FOLDER = "selectedSeqs";
@@ -195,19 +188,89 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	/** The Constant distinctSequencesInSelectionURL. */
 	static final public String distinctSequencesInSelectionURL = "/" + FRONTEND_URL + "/distinctSequencesInSelection.json";
 
+	/** The Constant GENOTYPE_CODE_LABEL_ALL. */
+	static final protected String GENOTYPE_CODE_LABEL_ALL = "Any";
+
+	/** The Constant GENOTYPE_CODE_LABEL_NOT_ALL_SAME. */
+	static final protected String GENOTYPE_CODE_LABEL_NOT_ALL_SAME = "Not all same";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ALL_SAME. */
+	static final protected String GENOTYPE_CODE_LABEL_ALL_SAME = "All same";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ALL_DIFFERENT. */
+	static final protected String GENOTYPE_CODE_LABEL_ALL_DIFFERENT = "All different";
+
+	/** The Constant GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT. */
+	static final protected String GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT = "Not all different";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF. */
+	static final protected String GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF = "All Homozygous Ref";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF. */
+	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF = "At least one Homozygous Ref";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR. */
+	static final protected String GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR = "All Homozygous Var";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR. */
+	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR = "At least one Homozygous Var";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS. */
+	static final protected String GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS = "All Heterozygous";
+
+	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS. */
+	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS = "At least one Heterozygous";
+
+	/** The Constant GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY. */
+	static final protected String GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY = "Without abnormal heterozygosity";
+
+	/** The Constant genotypeCodeToDescriptionMap. */
+	static final protected HashMap<String, String> genotypeCodeToDescriptionMap = new LinkedHashMap<String, String>();
+
+	/** The Constant genotypeCodeToQueryMap. */
+	static final protected HashMap<String, String> genotypeCodeToQueryMap = new HashMap<String, String>();
+
 	/** The Constant MESSAGE_TEMP_RECORDS_NOT_FOUND. */
 	static final public String MESSAGE_TEMP_RECORDS_NOT_FOUND = "Unable to find temporary records: please SEARCH again!";
 
-	/** The Constant MAX_SORTABLE_RESULT_COUNT. */
-	static final public int MAX_SORTABLE_RESULT_COUNT = 1000000;
-
 	/** The Constant NUMBER_OF_SIMULTANEOUS_QUERY_THREADS. */
 	static final private int NUMBER_OF_SIMULTANEOUS_QUERY_THREADS = 5;
-	
-    @Autowired
-    private AppConfig appConfig;
 
-	private Boolean fAllowDiskUse = null;
+	/** The nf. */
+	static protected NumberFormat nf = NumberFormat.getInstance();
+	
+    @Autowired private AppConfig appConfig;    
+    @Autowired private TokenManager tokenManager;
+
+	static
+	{
+		nf.setMaximumFractionDigits(4);
+
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL, "This will return all variants whithout applying any filters");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_SAME, "This will return variants where not all selected individuals have the same genotype");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_SAME, "This will return variants where all selected individuals have the same genotype");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_DIFFERENT, "This will return variants where none of the selected individuals have the same genotype");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT, "This will return variants where some of the selected individuals have the same genotypes");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF, "This will return variants where selected individuals are all homozygous with the reference allele");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF, "This will return variants where selected individuals are at least one homozygous with the reference allele");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR, "This will return variants where selected individuals are all homozygous with an alternate allele");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR, "This will return variants where selected individuals are at least one homozygous with an alternate allele");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS, "This will return variants where selected individuals are all heterozygous");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS, "This will return variants where selected individuals are at least one heterozygous");
+		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY, "This will return variants where each allele found in heterozygous genotypes is also found in homozygous ones (only for diploid, bi-allelic data)");
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL, null);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_SAME, "$eq");
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_SAME, "$eq" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_NEGATION_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_DIFFERENT, "$ne");
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT, "$ne" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_NEGATION_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF, "^0(/0)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF, "^0(/0)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR, "^([1-9][0-9]*)(/\\1)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR, "^([1-9][0-9]*)(/\\1)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS, "([0-9])([0-9])*(/(?!\\1))+([0-9])*|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS, "([0-9])([0-9])*(/(?!\\1))+([0-9])*|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
+		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY, GenotypingDataQueryBuilder.AGGREGATION_QUERY_WITHOUT_ABNORMAL_HETEROZYGOSITY);
+	}
 
 	/**
 	 * Gets the project ploidy level.
@@ -287,12 +350,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 */
 	protected abstract List<String> getIndividualsInDbOrder(String sModule, int projId) throws Exception;
 
-	public boolean isAggregationAllowedToUseDisk() {
-		if (fAllowDiskUse == null)
-			fAllowDiskUse = !Boolean.parseBoolean(appConfig.get("forbidMongoDiskUse"));
-		return fAllowDiskUse.booleanValue();
-	}
-
 	/* (non-Javadoc)
 	 * @see fr.cirad.web.controller.gigwa.base.IGigwaViewController#getViewDescription()
 	 */
@@ -308,28 +365,12 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	public String getViewURL() {
 		return variantSearchPageURL;
 	}
-
-    /**
-     * Handle all exceptions.
-     *
-     * @param request the request
-     * @param response the response
-     * @param ex the ex
-     * @return the model and view
-     */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
-    public ModelAndView handleAllExceptions(HttpServletRequest request, HttpServletResponse response, Exception ex) {
-    	LOG.error("Error at URL " + request.getRequestURI() + "?" + request.getQueryString(), ex);
-    	if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With")))
-    	{
-    		HashMap<String, String> map = new HashMap<String, String>();
-    		map.put("errorMsg", ExceptionUtils.getStackTrace(ex));
-    		return new ModelAndView(new MappingJackson2JsonView(), UnmodifiableMap.decorate(map));
-    	}
-    	else
-    		return exceptionResolver.resolveException(request, response, null, ex);
-    }
+	
+	@RequestMapping("/handleError")
+	public ModelAndView dde(HttpServletRequest request, HttpServletResponse response, Exception ex)
+	{
+		return new ModelAndView("ouie");
+	}
 
 	/**
 	 * This method get the query in relation with a specific genotype code.
@@ -339,7 +380,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 */
 	public static String getQueryForGenotypeCode(String gtCode)
 	{
-		return GenotypingDataQueryBuilder.getGenotypeCodeToQueryMap().get(gtCode);
+		return genotypeCodeToQueryMap.get(gtCode);
 	}
 
 	/**
@@ -351,7 +392,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(variantSearchPageURL)
-	protected ModelAndView setupSearchPage(final HttpServletRequest request, final HttpServletResponse response,  @RequestParam("module") String sModule) throws Exception
+	protected ModelAndView setupSearchPage(final HttpServletRequest request, @RequestParam("module") String sModule) throws Exception
 	{
 		new Thread()
 		{
@@ -369,10 +410,14 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		}.start();
         
 //		response.addHeader("X-Frame-Options", "ALLOW-FROM http://172.20.30.22:8081");
-		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("projects", getProjectIdToNameMap(sModule));
-		mav.addObject("genotypeCodes", GenotypingDataQueryBuilder.getGenotypeCodeToDescriptionMap());
+		Map<Comparable, String> projects = getProjectIdToNameMap(sModule), allowedProjects = new HashMap<Comparable, String>();
+		for (Comparable projectId : projects.keySet())
+			if (tokenManager.canUserReadProject(authentication, sModule, projectId))
+				allowedProjects.put(projectId, projects.get(projectId));
+		mav.addObject("projects", allowedProjects);
+		mav.addObject("genotypeCodes", genotypeCodeToDescriptionMap);
 		TreeMap<String /*format name*/, HashMap<String /*info field name ("desc", "supportedVariantTypes", ...*/, String /*info field value*/>> exportFormats = new TreeMap<String, HashMap<String, String>>();
 		for (IExportHandler exportHandler : AbstractIndividualOrientedExportHandler.getIndividualOrientedExportHandlers().values())
 		{
@@ -388,9 +433,12 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			info.put("supportedVariantTypes", StringUtils.join(exportHandler.getSupportedVariantTypes(), ";"));
 			exportFormats.put(exportHandler.getExportFormatName(), info);
 		}
+		
+		String token = tokenManager.generateToken(request.getSession().getMaxInactiveInterval());
+		tokenManager.attachAuthenticationToToken(token, authentication);
+		mav.addObject("token", token);
 		mav.addObject("exportFormats", exportFormats);
-		String genomeBrowserURL = appConfig.get("genomeBrowser-" + sModule);
-		mav.addObject("genomeBrowserURL", genomeBrowserURL == null ? "" : genomeBrowserURL);
+		mav.addObject("genomeBrowserURL", appConfig.get("genomeBrowser-" + sModule));
 		return mav;
 	}
 
@@ -689,7 +737,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				long before = System.currentTimeMillis();
 
 				progress.addStep("Counting matching variants");
-				String sRegexOrAggregationOperator = GenotypingDataQueryBuilder.getGenotypeCodeToQueryMap().get(gtCode);
+				String sRegexOrAggregationOperator = genotypeCodeToQueryMap.get(gtCode);
 
 				List<String> alleleCountList = alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";"));
 
@@ -743,8 +791,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 						projectObject.put(VariantData.FIELDNAME_KNOWN_ALLELE_LIST, "$" + VariantData.FIELDNAME_KNOWN_ALLELE_LIST);
 						pipeline.add(new BasicDBObject("$project", projectObject));
 						pipeline.add(new BasicDBObject("$out", tmpVarColl.getName()));
-
 						variantColl.aggregate(pipeline);
+
+						mongoTemplate.getDb().setWriteConcern(WriteConcern.ACKNOWLEDGED);
 						LOG.debug("Variant preliminary query found " + tmpVarColl.count() + " results in " + (System.currentTimeMillis() - beforeAggQuery)/1000f + "s");
 
 						progress.setProgressDescription(null);
@@ -766,8 +815,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			        	selectedIndividualList = getIndividualsInDbOrder(sModule, projId);
 
 			        GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(sModule, projId, tmpVarColl, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects, selectedIndividualList, getProjectEffectAnnotations(sModule, projId), new ArrayList<String>());
-			        if (alleleCountList != null)
-			        	genotypingDataQueryBuilder.setMaxAlleleCount(Collections.max((Collection<? extends Integer>) alleleCountList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList())));
 			        try
 			        {
 						final int nChunkCount = genotypingDataQueryBuilder.getNumberOfQueries();
@@ -775,21 +822,30 @@ public abstract class AbstractVariantController implements IGigwaViewController
 							LOG.debug("Query split into " + nChunkCount);
 
 						final Long[] partialCountArray = new Long[nChunkCount];
-						final Builder aggOpts = AggregationOptions.builder().allowDiskUse(isAggregationAllowedToUseDisk());
+						final Builder aggOpts = AggregationOptions.builder().allowDiskUse(false);
 						final ArrayList<Thread> threadsToWaitFor = new ArrayList<Thread>();
 						final AtomicInteger finishedThreadCount = new AtomicInteger(0);
+						
+						ArrayList<List<DBObject>> genotypingDataPipelines = new ArrayList();
+						while (genotypingDataQueryBuilder.hasNext())
+							genotypingDataPipelines.add(genotypingDataQueryBuilder.next());
+						
+						ArrayList<Integer> chunkIndices = new ArrayList<Integer>();
+						for (int i=0; i<genotypingDataPipelines.size(); i++)
+							chunkIndices.add(i);
+						Collections.shuffle(chunkIndices);
 
-						for (int i=0; i<nChunkCount; i++)
+						for (int i=0; i<chunkIndices.size()/*/2*/; i++)
 						{
-							final List<DBObject> genotypingDataPipeline = genotypingDataQueryBuilder.next();
+							final List<DBObject> genotypingDataPipeline = genotypingDataPipelines.get(chunkIndices.get(i));
 
 							// Now the $group operation, used for counting
 							DBObject groupFields = new BasicDBObject("_id", null);
 							groupFields.put("count", new BasicDBObject("$sum", 1));
 							genotypingDataPipeline.add(new BasicDBObject("$group", groupFields));
-
-							if (i == 0)
-								LOG.debug(genotypingDataPipeline.subList(1, genotypingDataPipeline.size()));
+						
+							if (i == 0 && tmpVarColl.count() <= 5)
+								LOG.debug(genotypingDataPipeline);
 
 							if (progress.hasAborted())
 							{
@@ -801,15 +857,19 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 			                Thread t = new Thread() {
 			                	public void run() {
+//			                		long b4 = System.currentTimeMillis();
 									Cursor it = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataPipeline, aggOpts.build());
 									partialCountArray[chunkIndex] = it.hasNext() ? ((Number) it.next().get("count")).longValue() : 0;
 									progress.setCurrentStepProgress((short) (finishedThreadCount.incrementAndGet()*100/nChunkCount));
+//									System.out.println("chunk " + chunkIndex + " took " + (System.currentTimeMillis() - b4));
 									genotypingDataPipeline.clear();	// release memory (VERY IMPORTANT)
 			                	}
 			                };
 
-			                if (chunkIndex%NUMBER_OF_SIMULTANEOUS_QUERY_THREADS  == (NUMBER_OF_SIMULTANEOUS_QUERY_THREADS-1))
+			                if (i%NUMBER_OF_SIMULTANEOUS_QUERY_THREADS == (NUMBER_OF_SIMULTANEOUS_QUERY_THREADS-1))
+			                {
 				            	t.run();	// run synchronously
+			                }
 				            else
 			                {
 				            	threadsToWaitFor.add(t);
@@ -901,9 +961,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	{
 		long before = System.currentTimeMillis();
 
-		String sShortProcessID = processID.substring(1 + processID.indexOf('|'));
+		String token = processID.substring(1 + processID.indexOf('|'));
 
-		final ProgressIndicator progress = new ProgressIndicator(sShortProcessID, new String[0]);
+		final ProgressIndicator progress = new ProgressIndicator(token, new String[0]);
 		ProgressIndicator.registerProgressIndicator(progress);
 		progress.addStep("Loading results");
 
@@ -927,10 +987,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		final DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, progress.getProcessId(), false);
 
-		String sRegexOrAggregationOperator = GenotypingDataQueryBuilder.getGenotypeCodeToQueryMap().get(gtCode);
+		String sRegexOrAggregationOperator = genotypeCodeToQueryMap.get(gtCode);
     	boolean fNeedToFilterOnGenotypingData = needToFilterOnGenotypingData(sModule, projId, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects);
-    	List<String> alleleCountList = alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";"));
-		final BasicDBList variantQueryDBList = buildVariantDataQuery(sModule, projId, selectedVariantTypes.length() == 0 ? null : Arrays.asList(selectedVariantTypes.split(";")), selectedSequenceList, minposition, maxposition, alleleCountList);
+		final BasicDBList variantQueryDBList = buildVariantDataQuery(sModule, projId, selectedVariantTypes.length() == 0 ? null : Arrays.asList(selectedVariantTypes.split(";")), selectedSequenceList, minposition, maxposition, alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";")));
 
 		if (!variantQueryDBList.isEmpty() && tmpVarColl.count() == 0 /* otherwise we kept the preliminary list from the count procedure */)
 		{	// apply filter on variant features
@@ -945,27 +1004,26 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			projectObject.put(VariantData.FIELDNAME_TYPE, "$" + VariantData.FIELDNAME_TYPE);
 			projectObject.put(VariantData.FIELDNAME_KNOWN_ALLELE_LIST, "$" + VariantData.FIELDNAME_KNOWN_ALLELE_LIST);
 			pipeline.add(new BasicDBObject("$project", projectObject));
+
 			pipeline.add(new BasicDBObject("$out", tmpVarColl.getName()));
-
 			variantColl.aggregate(pipeline);
+			
 			LOG.debug("Variant preliminary query found " + tmpVarColl.count() + " results in " + (System.currentTimeMillis() - beforeAggQuery)/1000f + "s");
-
 			progress.setProgressDescription(null);
 		}
-		else if (fNeedToFilterOnGenotypingData)
-				LOG.debug("Re-using " + tmpVarColl.count() + " results from count procedure's variant preliminary query");
+		else if (fNeedToFilterOnGenotypingData && tmpVarColl.count() > 0)
+			LOG.debug("Re-using " + tmpVarColl.count() + " results from count procedure's variant preliminary query");
 
 		if (progress.hasAborted())
 			return false;
 
 		if (fNeedToFilterOnGenotypingData)
 		{	// now filter on genotyping data
-			final ConcurrentLinkedQueue<Thread> threadsToWaitFor = new ConcurrentLinkedQueue<Thread>();
+			final ConcurrentLinkedQueue<Thread> queryThreadsToWaitFor = new ConcurrentLinkedQueue<Thread>(), removalThreadsToWaitFor = new ConcurrentLinkedQueue<Thread>();
 			final AtomicInteger finishedThreadCount = new AtomicInteger(0);
 			final ConcurrentSkipListSet<Comparable> allVariantsThatPassRunFilter = new ConcurrentSkipListSet<Comparable>();
 			final GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(sModule, projId, tmpVarColl, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects, selectedIndividuals == null || selectedIndividuals.length() == 0 ? getIndividualsInDbOrder(sModule, projId) : Arrays.asList(selectedIndividuals.split(";")), getProjectEffectAnnotations(sModule, projId), new ArrayList<String>());
-			if (alleleCountList != null)
-				genotypingDataQueryBuilder.setMaxAlleleCount(Collections.max((Collection<? extends Integer>) alleleCountList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList())));
+			genotypingDataQueryBuilder.keepTrackOfPreFilters(!variantQueryDBList.isEmpty());
 	        try
 	        {
 				final int nChunkCount = genotypingDataQueryBuilder.getNumberOfQueries();
@@ -977,25 +1035,31 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				}
 				if (nChunkCount > 1)
 					LOG.debug("Query split into " + nChunkCount);
-
-				int i = -1;
+				
+				ArrayList<List<DBObject>> genotypingDataPipelines = new ArrayList();
 				while (genotypingDataQueryBuilder.hasNext())
+					genotypingDataPipelines.add(genotypingDataQueryBuilder.next());
+				
+				ArrayList<Integer> chunkIndices = new ArrayList<Integer>();
+				for (int i=0; i<genotypingDataPipelines.size(); i++)
+					chunkIndices.add(i);
+				Collections.shuffle(chunkIndices);
+				
+				for (int i=0; i<chunkIndices.size(); i++)
 				{
-					final List<DBObject> genotypingDataPipeline = genotypingDataQueryBuilder.next();
+					final int chunkIndex = chunkIndices.get(i);
+					final List<DBObject> genotypingDataPipeline = genotypingDataPipelines.get(chunkIndex);
+
 					if (progress.hasAborted())
 					{
 						genotypingDataQueryBuilder.cleanup();	// otherwise a pending db-cursor will remain
 						return false;
 					}
 
-					final int chunkIndex = ++i;
-					if (partialCountArray != null && (Long) partialCountArray[chunkIndex] == 0)
-						continue;
-
 					Thread t = new Thread() {
 						public void run()
 						{
-							Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataPipeline, AggregationOptions.builder().allowDiskUse(isAggregationAllowedToUseDisk()).build());
+							Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataPipeline, AggregationOptions.builder().allowDiskUse(true).build());
 							final ArrayList<Comparable> variantsThatPassedRunFilter = new ArrayList<Comparable>();
 							while (genotypingDataCursor.hasNext())
 								variantsThatPassedRunFilter.add((Comparable) genotypingDataCursor.next().get("_id"));
@@ -1004,25 +1068,44 @@ public abstract class AbstractVariantController implements IGigwaViewController
 								allVariantsThatPassRunFilter.addAll(variantsThatPassedRunFilter);
 							else
 							{	// mark the results we want to keep
-//								long beforeTempCollUpdate = System.currentTimeMillis();
-								WriteResult wr = mongoTemplate.updateMulti(new Query(Criteria.where("_id").in(variantsThatPassedRunFilter)), new Update().set(VariantData.FIELDNAME_VERSION, 0), tmpVarColl.getName());
-//								LOG.debug("Chunk N." + (chunkIndex+1) + "/" + genotypingDataQueryBuilder.getNumberOfQueries() + ": " + wr.getN() + " temp records marked in " + (System.currentTimeMillis() - beforeTempCollUpdate)/1000d + "s");
+								final List<Comparable> lastUsedPreFilter = genotypingDataQueryBuilder.getPreFilteredIDsForChunk(chunkIndex);
+						
+								Thread removalThread = new Thread() {
+									public void run()
+									{
+										genotypingDataPipeline.clear();	// release memory (VERY IMPORTANT)
+
+										long beforeTempCollUpdate = System.currentTimeMillis();
+										if (variantsThatPassedRunFilter.size() == lastUsedPreFilter.size())
+											return;	// none to remove
+										
+										Collection<Comparable> filteredOutVariants = variantsThatPassedRunFilter.size() == 0 ? lastUsedPreFilter : CollectionUtils.subtract(lastUsedPreFilter, variantsThatPassedRunFilter);										
+										BasicDBObject removalQuery = GenotypingDataQueryBuilder.tryAndShrinkIdList("_id", filteredOutVariants, 4);
+										WriteResult wr = tmpVarColl.remove(removalQuery);
+										LOG.debug("Chunk N." + (chunkIndex) + ": " + wr.getN() + " filtered-out temp records removed in " + (System.currentTimeMillis() - beforeTempCollUpdate)/1000d + "s");
+										
+										progress.setCurrentStepProgress((short) (finishedThreadCount.incrementAndGet()*100/nChunkCount));
+									}
+								};
+								removalThreadsToWaitFor.add(removalThread);
+								removalThread.start();
 							}
-							progress.setCurrentStepProgress((short) (finishedThreadCount.incrementAndGet()*100/nChunkCount));
-							genotypingDataPipeline.clear();	// release memory (VERY IMPORTANT)
 						}
 					};
 
-	                if (chunkIndex%NUMBER_OF_SIMULTANEOUS_QUERY_THREADS == (NUMBER_OF_SIMULTANEOUS_QUERY_THREADS-1))
-		            	t.run();	// run synchronously
+	                if (i%NUMBER_OF_SIMULTANEOUS_QUERY_THREADS == (NUMBER_OF_SIMULTANEOUS_QUERY_THREADS-1))
+		            	t.run();	// sometimes run synchronously so that all queries are not sent at the same time (also helps smooth progress display)
 		            else
 	                {
-		            	threadsToWaitFor.add(t);
+		            	queryThreadsToWaitFor.add(t);
 		            	t.start();	// run asynchronously for better speed
 	                }
 				}
 
-				for (Thread t : threadsToWaitFor)	// wait for all threads before moving to next phase
+				// wait for all threads before moving to next phase
+				for (Thread t : queryThreadsToWaitFor)
+					t.join();
+				for (Thread t : removalThreadsToWaitFor)
 					t.join();
 	        }
 	        catch (Exception e)
@@ -1037,10 +1120,11 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			progress.addStep("Updating temporary results");
 			progress.moveToNextStep();
 			final long beforeTempCollUpdate = System.currentTimeMillis();
+			mongoTemplate.getDb().setWriteConcern(WriteConcern.ACKNOWLEDGED);
 			if (variantQueryDBList.isEmpty())
 			{	// we filtered on runs only: keep track of the final dataset
-				List<DBObject> pipeline = new ArrayList<DBObject>();
-				pipeline.add(new BasicDBObject("$match", new BasicDBObject("_id", new BasicDBObject("$in", allVariantsThatPassRunFilter))));
+				List<BasicDBObject> pipeline = new ArrayList<>();
+				pipeline.add(new BasicDBObject("$match", GenotypingDataQueryBuilder.tryAndShrinkIdList("_id", allVariantsThatPassRunFilter, 4)));
 				BasicDBObject projectObject = new BasicDBObject("_id", "$_id");
 				projectObject.put(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE, "$" + VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE);
 				projectObject.put(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE, "$" + VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE);
@@ -1052,14 +1136,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				variantColl.aggregate(pipeline);
 				LOG.debug(tmpVarColl.count() + " temp records created in " + (System.currentTimeMillis() - beforeTempCollUpdate)/1000d + "s");
 			}
-			else
-				new Thread() {
-				public void run()
-				{	// remove records that were not marked for keeping
-					WriteResult wr = tmpVarColl.remove(new BasicDBObject(VariantData.FIELDNAME_VERSION, new BasicDBObject("$exists", false)));
-					LOG.debug(wr.getN() + " filtered-out temp records removed in " + (System.currentTimeMillis() - beforeTempCollUpdate)/1000d + "s");
-				}
-			}.start();
 		}
 
 		progress.markAsComplete();
@@ -1104,7 +1180,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	{
 		String[] usedFields = wantedFields.split(";");
 
-		String sShortProcessID = processID.substring(1 + processID.indexOf('|'));
+		String token = processID.substring(1 + processID.indexOf('|'));
 		String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
 		MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 		DBCollection cachedCountcollection = mongoTemplate.getCollection(MgdbDao.COLLECTION_NAME_CACHED_COUNTS);
@@ -1122,17 +1198,17 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		long expectedCount = 0;
 		for (Object aPartialCount : partialCountArray)
 			expectedCount += (Long) aPartialCount;
-		DBCollection tempVarColl = getTemporaryVariantCollection(sModule, sShortProcessID, false);
-		long nTempVarCount = tempVarColl.count();
+		DBCollection tmpVarCollOrView = getTemporaryVariantCollection(sModule, token, false);
+		boolean fGotTempData = tmpVarCollOrView.findOne() != null;
 
 		ArrayList<Comparable[]> result = new ArrayList<Comparable[]>();
 		DBCollection variantColl = mongoTemplate.getCollection(mongoTemplate.getCollectionName(VariantData.class));
-		if (nTempVarCount > 0 || expectedCount == variantColl.count())	// otherwise we return an empty list because there seems to be a problem (missing temp records)
+		if (fGotTempData || expectedCount == variantColl.count())	// otherwise we return an empty list because there seems to be a problem (missing temp records)
 		{
 			boolean fProjectHasAnnotations = getProjectEffectAnnotations(sModule, projId).size() > 0;
 
-			DBCollection varCollForBuildingRows = nTempVarCount == 0 ? variantColl : tempVarColl;
-			DBCursor variantsInFilterCursor = varCollForBuildingRows.find(expectedCount == nTempVarCount ? null : new BasicDBObject(VariantData.FIELDNAME_VERSION, new BasicDBObject("$exists", true)));
+			DBCollection varCollForBuildingRows = fGotTempData ? tmpVarCollOrView : variantColl;
+			DBCursor variantsInFilterCursor = varCollForBuildingRows.find();
 
 			ArrayList<Object[]> variantRows = buildVariantRows(mongoTemplate, variantsInFilterCursor, sortBy, sortDir, page, size, variantFieldMap, runDataFieldMap);
 			for (Object[] aRow : variantRows)
@@ -1153,6 +1229,18 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				result.add(anOutputRow.toArray(new Comparable[anOutputRow.size()]));
 			}
 		}
+		
+		if (page == 0 && tmpVarCollOrView.getIndexInfo().size() <= 1)
+			new Thread() {	// temp data needs to be indexed for faster browsing
+				public void run() {
+	    			long b4 = System.currentTimeMillis();
+	    			tmpVarCollOrView.createIndex(VariantData.FIELDNAME_VERSION);
+	    			tmpVarCollOrView.createIndex(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE);
+	    			tmpVarCollOrView.createIndex(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE);
+	    			tmpVarCollOrView.createIndex(VariantData.FIELDNAME_TYPE);
+					LOG.debug("Indexing " + tmpVarCollOrView.count() + " temp variants took " + (System.currentTimeMillis() - b4)/1000f + "s");
+				}
+			}.start();
 		return result;
 	}
 
@@ -1203,7 +1291,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			genotypingDataAggregationParams2.add(new BasicDBObject("$project", project));
 
 //			long beforeQuery = System.currentTimeMillis();
-			Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataAggregationParams2, AggregationOptions.builder().allowDiskUse(isAggregationAllowedToUseDisk()).build());
+			Cursor genotypingDataCursor = mongoTemplate.getCollection(MongoTemplateManager.getMongoCollectionName(VariantRunData.class)).aggregate(genotypingDataAggregationParams2, AggregationOptions.builder().allowDiskUse(true).build());
 			while (genotypingDataCursor.hasNext())
 			{
 				DBObject record = genotypingDataCursor.next();
@@ -1349,14 +1437,15 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(variantExportDataURL)
-	protected void exportVariants(HttpServletRequest request, HttpServletResponse response, @RequestParam("module") String sModule, @RequestParam("keepExportOnServer") boolean fKeepExportOnServer, @RequestParam("exportFormat") String sExportFormat, @RequestParam("exportID") final String exportID, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam(value="individuals", required=false) String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam(value="minmaf", required=false) Float minmaf, @RequestParam(value="maxmaf", required=false) Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects) throws Exception
+	protected void exportVariants(HttpServletRequest request, HttpServletResponse response, @RequestParam("module") String sModule, @RequestParam("keepExportOnServer") boolean fKeepExportOnServer, @RequestParam("exportFormat") String sExportFormat, @RequestParam("exportID") String exportID, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam(value="individuals", required=false) String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam(value="minmaf", required=false) Float minmaf, @RequestParam(value="maxmaf", required=false) Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects) throws Exception
 	{
-		String sShortProcessID = exportID.substring(1 + exportID.indexOf('|'));
+//		exportID = URLDecoder.decode(exportID, "UTF-8");
+		String token = exportID.substring(1 + exportID.indexOf('|'));
 
-		ProgressIndicator progress = ProgressIndicator.get(sShortProcessID);
+		ProgressIndicator progress = ProgressIndicator.get(token);
 		if (progress == null)
 		{
-			progress = new ProgressIndicator(sShortProcessID, new String[] {"Identifying matching variants"});
+			progress = new ProgressIndicator(token, new String[] {"Identifying matching variants"});
 			ProgressIndicator.registerProgressIndicator(progress);
 		}
 
@@ -1366,7 +1455,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		List<String> selectedIndividualList = selectedIndividuals.length() == 0 ? getIndividualsInDbOrder(sModule, projId) /* no selection means all selected */ : Arrays.asList(selectedIndividuals.split(";"));
 
 		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
-		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, sShortProcessID, false);
+		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
 		long nTempVarCount = mongoTemplate.count(new Query(), tmpVarColl.getName());
 		boolean fWorkingOnFullDataset = mongoTemplate.count(null, VariantData.class) == count;
 		if (!fWorkingOnFullDataset && nTempVarCount == 0)
@@ -1394,10 +1483,10 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			GenotypingProject project = mongoTemplate.findById(projId, GenotypingProject.class);
 			String filename = sModule + "_" + project.getName() + "_" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "_" + count + "variants_" + sExportFormat + "." + (individualOrientedExportHandler != null ? individualOrientedExportHandler : markerOrientedExportHandler).getExportFileExtension();
 			OutputStream os;
-			LOG.info((fKeepExportOnServer ? "On-server" : "Direct-download") + " export requested: " + sShortProcessID);
+			LOG.info((fKeepExportOnServer ? "On-server" : "Direct-download") + " export requested: " + token);
 			if (fKeepExportOnServer)
 			{
-				String relativeOutputFolder = File.separator + FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER + File.separator + sShortProcessID.replaceAll("\\|", "_") + File.separator;
+				String relativeOutputFolder = File.separator + FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER + File.separator + token.replaceAll("\\|", "_") + File.separator;
 				File outputLocation = new File(request.getSession().getServletContext().getRealPath(relativeOutputFolder));
 				if (!outputLocation.exists() && !outputLocation.mkdirs())
 					throw new Exception("Unable to create folder: " + outputLocation);
@@ -1418,10 +1507,10 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 			if (fKeepExportOnServer)
 			{
-				String relativeOutputFolder = FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER + File.separator + sShortProcessID.replaceAll("\\|", "_") + File.separator;
+				String relativeOutputFolder = FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER + File.separator + token.replaceAll("\\|", "_") + File.separator;
 				String relativeOutputFolderUrl = request.getContextPath() + "/" + relativeOutputFolder.replace(File.separator, "/");
 				String exportURL = relativeOutputFolderUrl + filename;
-				LOG.debug("On-server export file for export " + sShortProcessID + ": " + exportURL);
+				LOG.debug("On-server export file for export " + token + ": " + exportURL);
 				response.getWriter().write(exportURL);
 				response.flushBuffer();
 			}
@@ -1436,7 +1525,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			{
 				progress.addStep("Reading and re-organizing genotypes"); // initial step will consist in organizing genotypes by individual rather than by marker
 				progress.moveToNextStep();	// done with identifying variants
-				LinkedHashMap<String, File> exportFiles = individualOrientedExportHandler.createExportFiles(sModule, markerCursor.copy(), sampleIDs, sShortProcessID, genotypeQualityThreshold, readDepthThreshold, progress);
+				LinkedHashMap<String, File> exportFiles = individualOrientedExportHandler.createExportFiles(sModule, markerCursor.copy(), sampleIDs, token, genotypeQualityThreshold, readDepthThreshold, progress);
 				if (!progress.hasAborted()) {
 					for (String step : individualOrientedExportHandler.getStepList())
 						progress.addStep(step);
@@ -1594,15 +1683,16 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * On interface unload.
 	 *
 	 * @param sModule the module
-	 * @param processID the process id
+	 * @param token the interface ID
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(interfaceCleanupURL)
-	public @ResponseBody void onInterfaceUnload(@RequestParam("module") String sModule, @RequestParam("processID") String processID) throws Exception
+	public @ResponseBody void onInterfaceUnload(@RequestParam("module") String sModule, @RequestParam("interfaceID") String token) throws Exception
 	{
-		String collName = getTemporaryVariantCollection(sModule, processID.substring(1 + processID.indexOf('|')), false).getName();
+		String collName = getTemporaryVariantCollection(sModule, token, false).getName();
 		MongoTemplateManager.get(sModule).dropCollection(collName);
-		LOG.debug("Dropped collection " + collName);
+		boolean fDetachedToken = tokenManager.detachAuthenticationFromToken(token);
+		LOG.debug("Dropped collection " + sModule + "." + collName + (fDetachedToken ? " and detached token " + token : ""));
 	}
 
 	/**
@@ -1631,8 +1721,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	@RequestMapping(distinctSequencesInSelectionURL)
 	protected @ResponseBody Collection<String> distinctSequencesInSelection(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("processID") String processID) throws Exception
 	{
-		String sShortProcessID = processID.substring(1 + processID.indexOf('|'));
-		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, sShortProcessID, false);
+		String token = processID.substring(1 + processID.indexOf('|'));
+		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
 		if (tmpVarColl.count() == 0)
 			return listSequences(request, sModule, projId);	// working on full dataset
 
@@ -1707,15 +1797,10 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	{
 		DBCollection coll = MongoTemplateManager.get(sModule).getCollection(MongoTemplateManager.TEMP_EXPORT_PREFIX + Helper.convertToMD5(processID));
 		if (fEmptyItBeforeHand)
-		{
 			coll.drop();
-			coll.createIndex(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE);
-			coll.createIndex(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE);
-			coll.createIndex(VariantData.FIELDNAME_TYPE);
-		}
 		return coll;
 	}
-
+	
 	/**
 	 * Selection density.
 	 *
@@ -1750,15 +1835,15 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	{
 		long before = System.currentTimeMillis();
 
-		String sShortProcessID = processID.substring(1 + processID.indexOf('|'));
+		String token = processID.substring(1 + processID.indexOf('|'));
 
-		ProgressIndicator progress = new ProgressIndicator(sShortProcessID, new String[] {"Calculating " + (displayedVariantType != null ? displayedVariantType + " " : "") + "variant density on sequence " + displayedSequence});
+		ProgressIndicator progress = new ProgressIndicator(token, new String[] {"Calculating " + (displayedVariantType != null ? displayedVariantType + " " : "") + "variant density on sequence " + displayedSequence});
 		ProgressIndicator.registerProgressIndicator(progress);
 
 		final MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 
 		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
-		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, sShortProcessID, false);
+		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
 		boolean fStillGotUnwantedTempVariants = count < tmpVarColl.count();
 		long nTempVarCount = mongoTemplate.count(new Query(), tmpVarColl.getName());
 		final boolean fWorkingOnFullDataset = mongoTemplate.count(null, VariantData.class) == count;

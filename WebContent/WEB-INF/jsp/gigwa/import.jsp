@@ -139,7 +139,14 @@
 		$.getJSON('<c:url value="<%= GigwaController.genotypingDataImportSubmissionURL %>" />', { host:host,module:module,project:project,run:run,technology:technology,clearProjectData:clearProjectData,mainFile:mainFile }, function(jsonResult) {
 			setTimeout("checkProcessProgress(\"../" + jsonResult + "\");", minimumProcessQueryIntervalUnit);
 		}).error(function(xhr, ajaxOptions, thrownError) {
-			handleJsonError(xhr, ajaxOptions, thrownError);
+			$('div#progressDiv').html();
+// 			alert("Error occured :\n\n" + $($.parseHTML(xhr.responseText)).find("h2").text().trim());
+// 			console.log("Error occured 2:\n\n" + xhr.responseText);
+			$('#importButton').removeAttr('disabled');
+			$('form select').removeAttr('disabled');
+			$('form input').removeAttr('disabled');
+// 			handleJsonError(xhr, ajaxOptions, thrownError);
+			alert($.parseJSON(xhr.responseText)['errorMsg']);
     	});
 	}
 
@@ -175,7 +182,7 @@
 	function handleImportSuccess()
 	{
 		var importedModule = $('input[name=module]').val();
-		if ($('#modules').find("option[value=" + importedModule + "]").length == 0)
+		if ($('select#modules', window.parent.document).find("option[value=" + importedModule + "]").length == 0)
 			$('select#modules', window.parent.document).append("<option value=\"" + importedModule + "\">" + importedModule + "</option>");
 		$('div#progressDiv').html('Your data is now <a href=\"<c:url value="<%= AbstractVariantController.variantSearchPageURL %>" />?module=' + importedModule + '\" onclick=\"$(\'select#modules\', window.parent.document).val(\'' + importedModule + '\');\">available here</a>');
 	}

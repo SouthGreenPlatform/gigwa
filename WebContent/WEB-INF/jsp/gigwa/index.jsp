@@ -15,9 +15,13 @@
 		GNU Affero General Public License V3.
 --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="org.springframework.security.core.authority.GrantedAuthorityImpl,org.springframework.security.core.*,org.springframework.security.core.context.SecurityContextHolder,fr.cirad.web.controller.gigwa.base.AbstractVariantController,fr.cirad.web.controller.gigwa.GigwaController" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="org.springframework.security.core.*,org.springframework.security.core.context.SecurityContextHolder,fr.cirad.web.controller.gigwa.base.AbstractVariantController,fr.cirad.web.controller.gigwa.GigwaController" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<sec:authentication property="principal" var="principal"/>
+<sec:authorize access="hasRole('ROLE_ADMIN')" var="isAdmin"/>
+<sec:authorize access="hasRole('ROLE_ANONYMOUS')" var="isAnonymous"/>
 <html>
 <%
 java.util.Properties prop = new java.util.Properties();
@@ -37,6 +41,14 @@ appVersion = appVersion == null ? "" : ("v" + prop.getProperty("Implementation-v
 		function showTutorial()
 		{
 		    $("#tutorialDialog").modal({
+		    	opacity:80,
+		    	overlayCss: {backgroundColor:"#111"}
+		    });
+		}
+		
+		function showRoleManager()
+		{
+		    $("#roleManagerDialog").modal({
 		    	opacity:80,
 		    	overlayCss: {backgroundColor:"#111"}
 		    });
@@ -80,40 +92,21 @@ appVersion = appVersion == null ? "" : ("v" + prop.getProperty("Implementation-v
 
 <div style="float:right; margin-top:-6px;">
 	<a style="margin-right:20px;" href="#" onclick="showTutorial();" title='Online tutorial'><img src='../img/tutorial.gif' border='0'></a>
-
-<%
-	Authentication authToken = SecurityContextHolder.getContext().getAuthentication();
-	if (authToken == null || authToken.getAuthorities().contains(new GrantedAuthorityImpl("ROLE_ADMIN")))
-	{
-%>
-
-	<a style="margin-right:20px;" href='<c:url value="<%=GigwaController.mainPageURL%>" />?reloadDatasources=true' onclick="$('form')[0].reset();" title='Reload database list and permissions'><img src='../img/refresh.gif' border='0'></a>
-	<a target="mainFrame" href='<c:url value="<%=GigwaController.importPageURL%>" />' onclick="$('form')[0].reset();" title='Import data'><img src='../img/import.gif' border='0'></a>
-
-<%
-	}
-	if (authToken != null)
-	{
-		if (!authToken.getAuthorities().contains(new GrantedAuthorityImpl("ROLE_ANONYMOUS")))
-		{
-%>
-
-	<c:set var="authentication" value="<%= authToken %>" />
-	<a style="margin-left:20px;" href='../j_spring_security_logout' title='Log-out ${authentication.principal.username}'><img src='../img/logout.gif' border='0'></a>
-
-<%
-		}
-		else
-		{
-%>
-
-	<a href='../j_spring_security_logout' title='Log-in for private data'><img src='../img/login.gif' border='0'></a>
-	
-<%
-		}
-	}
-%>
-
+    <c:if test="${userDao.doesLoggedUserOwnEntities()}">
+		<a style="margin-right:20px;" href="#" onclick="showRoleManager();" title='User permissions'><img height='26' style="margin-bottom:4px;" src='../img/users.png' border='0'></a>
+	</c:if>
+    <c:if test="${userDao.canLoggedUserWriteToSystem()}">
+		<a target="mainFrame" href='<c:url value="<%=GigwaController.importPageURL%>" />' onclick="$('form')[0].reset();" title='Import data'><img src='../img/import.gif' border='0'></a>
+    </c:if>
+    <c:if test="${principal == null || isAdmin}">
+		<a style="margin-left:20px;" href='<c:url value="<%=GigwaController.mainPageURL%>" />?reloadDatasources=true' onclick="$('form')[0].reset();" title='Reload database list and permissions'><img src='../img/refresh.gif' border='0'></a>
+    </c:if>
+    <c:if test="${principal != null && isAnonymous}">
+		<a href='../j_spring_security_logout' title='Log-in for private data'><img src='../img/login.gif' border='0'></a>
+	</c:if>
+	<c:if test="${principal != null && !isAnonymous}">
+		<a style="margin-left:20px;" href='../j_spring_security_logout' title='Log-out ${principal.username}'><img src='../img/logout.gif' border='0'></a>
+	</c:if>
 </div>
 
 <form style="margin-left:250px;">
@@ -148,6 +141,27 @@ appVersion = appVersion == null ? "" : ("v" + prop.getProperty("Implementation-v
 		<tr>
 			<td style="background-color:#ddeeee; height:25px;" align='center' valign="middle">
 				<div style="position:absolute; left:840px; top:550px; font-weight:bold; font-style:italic; width:150px;">GIGWA tutorial&nbsp;</div>
+				<form>
+					<input type='button' value='Close' onclick="abortExport();" class="simplemodal-close">
+				</form>
+			</td>
+		</tr>
+	</table>
+</div>
+
+<div id="roleManagerDialog" align="center" style="margin:10px; width:960px; display:none; position:absolute; top:0px; left:0px; z-index:100; background-color:#ffffff;">
+	<table style="border-spacing:0 border:2px solid #E0E0E0; margin-top:2px;" cellpadding='0' cellspacing='0'>
+		<tr>
+			<td>
+				<iframe src="../private/AdminFrameSet.html" style="width:960px; height:540px; border:0;"></iframe>
+			</td>
+		</tr>
+		<tr>
+			<td style="background-color:#ffffff; height:1px;" align='center' valign="middle"></td>
+		</tr>
+		<tr>
+			<td style="background-color:#ddeeee; height:25px;" align='center' valign="middle">
+				<div style="position:absolute; left:840px; top:550px; font-weight:bold; font-style:italic; width:150px;">User permissions&nbsp;</div>
 				<form>
 					<input type='button' value='Close' onclick="abortExport();" class="simplemodal-close">
 				</form>

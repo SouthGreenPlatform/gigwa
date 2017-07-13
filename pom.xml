@@ -27,6 +27,18 @@
 		  <version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
+<!-- 		<dependency> -->
+<!-- 			<groupId>fr.cirad</groupId> -->
+<!-- 			<artifactId>role_manager</artifactId> -->
+<!-- 			<version>0.1.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+
+		<dependency>
+		    <groupId>com.auth0</groupId>
+		    <artifactId>java-jwt</artifactId>
+		    <version>3.2.0</version>
+		</dependency>
+
 		<dependency> 
 			<groupId>fr.cirad</groupId>
 			<artifactId>mgdb</artifactId>
@@ -57,6 +69,17 @@
 			<version>4.2.5.RELEASE</version>
 		</dependency>
 
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+            <version>3.2.6.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
@@ -167,7 +190,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
