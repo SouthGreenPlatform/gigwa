@@ -162,6 +162,40 @@ public class TokenManager extends AbstractTokenManager {
         }
         return hasAccess;
     }
+    
+    /**
+     * check if user has permission to create a project in a given database
+     *
+     * @param token
+     * @param module
+     * @return true if allowed to read some contents of a database
+     */
+    public boolean canUserCreateProjectInDB(String token, String module) {
+    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	if (authentication == null)
+    		authentication = SecurityContextHolder.getContext().getAuthentication();
+    	boolean fResult = canUserCreateProjectInDB(authentication, module);
+    	if (fResult)
+    		updateToken(token, System.currentTimeMillis());
+        return fResult;
+    }
+    
+    public boolean canUserCreateProjectInDB(Authentication authentication, String module) {
+
+        boolean hasAccess = false;
+        if (MongoTemplateManager.isModulePublic(module)) {
+            hasAccess = true;	// if the database is public, return true, no need to check for rights
+        }
+        else
+        {	// database is not public
+    		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null;
+    		boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
+    		Collection<String> writableEntityTypes = userDao.getWritableEntityTypesByModule(authentication.getAuthorities()).get(module);
+            if (fAdminUser || (fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)))))
+                hasAccess = true;
+        }
+        return hasAccess;
+    }
 
     /**
      * return readable modules a given Authentication instance

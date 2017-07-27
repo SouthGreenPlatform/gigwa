@@ -18,7 +18,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="fr.cirad.web.controller.gigwa.GigwaController,fr.cirad.web.controller.gigwa.base.AbstractVariantController" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<sec:authorize access="hasRole('ROLE_ADMIN')" var="isAdmin"/>
 <html>
 <head>
 	<link rel ="stylesheet" type="text/css" href="../css/main.css" title="style">
@@ -41,13 +42,13 @@
 		var existingModuleSelected = selectedModule != '';
 		$('#newModuleDiv').toggle(!existingModuleSelected);
 		$('input[name=module]').val(existingModuleSelected ? selectedModule : "");
-		var projectOptions = "<option value=''>- New project -</option>";
+		var projectOptions = existingModuleSelected ? "" : "<option value=''>- New project -</option>";
 		for (var pjKey in projectModules[selectedModule])
-			projectOptions += "<option value='" + pjKey + "'>" + pjKey + "</option>";
+			projectOptions += "<option value='" + pjKey + "'>" + (pjKey == "" ? "- New project -" : pjKey) + "</option>";
 		$("#projects").html(projectOptions);
 		projectChanged();
 	}
-	
+
 	function projectChanged()
 	{
 		var selectedModule = $('input[name=module]').val();
@@ -197,7 +198,7 @@
 	</script>
 </head>
 
-<body bgcolor="#f0f0f0" onload="$('#importButton').removeAttr('disabled'); $('form select').removeAttr('disabled'); $('form input').removeAttr('disabled'); $('form')[0].reset(); $('input[name=technology]').blur(); $('input[name=clearProjectData]').attr('disabled', 'disabled');">
+<body bgcolor="#f0f0f0" onload="moduleChanged(); $('#importButton').removeAttr('disabled'); $('form select').removeAttr('disabled'); $('form input').removeAttr('disabled'); $('form')[0].reset(); $('input[name=technology]').blur(); $('input[name=clearProjectData]').attr('disabled', 'disabled');">
 <div style="width:100%;">
 	<div style="width:650px; margin:auto;">
 	<h2>Data import</h2>
@@ -208,24 +209,31 @@
 		<th><label class="required">Database</label></th>
 		<td width="220">
 		<select id="modules" style="margin-right:10px;" onchange="moduleChanged();">
-			<option value="" selected>- New database -</option>
+			<c:if test="${isAdmin}"><option value="" selected>- New database -</option></c:if>
 			<c:forEach var="moduleProjectsAndRuns" items="${modulesProjectsAndRuns}">
 				<option value="${moduleProjectsAndRuns.key}">${moduleProjectsAndRuns.key}</option>
 			</c:forEach>
 		</select>
 		</td>
 		<td align='right'>
-			<div id="newModuleDiv">
-			Host
-			<select id="host" style="margin-bottom:5px; min-width:130px;">
-				<c:forEach var="host" items="${hosts}">
-					<option value="${host}">${host}</option>
-				</c:forEach>
-			</select>
-			<br/>
-			<label class="required">New database name</label>
-			<input type="text" name="module" style="width:130px;" maxlength="30" onkeypress="return isValidKeyForNewName(event);" />
-			</div>
+		<c:choose>
+			<c:when test="${isAdmin}">
+				<div id="newModuleDiv">
+				Host
+				<select id="host" style="margin-bottom:5px; min-width:130px;">
+					<c:forEach var="host" items="${hosts}">
+						<option value="${host}">${host}</option>
+					</c:forEach>
+				</select>
+				<br/>
+				<label class="required">New database name</label>
+				<input type="text" name="module" style="width:130px;" maxlength="30" onkeypress="return isValidKeyForNewName(event);" />
+				</div>
+			</c:when>
+			<c:otherwise>
+				<input type="hidden" name="module" />
+			</c:otherwise>
+		</c:choose>
 		</td>
 		</tr>
 		<tr bgcolor='#eeffee' height="53">
