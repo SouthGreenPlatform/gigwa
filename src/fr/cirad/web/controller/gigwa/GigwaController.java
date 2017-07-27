@@ -20,6 +20,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -188,6 +190,9 @@ public class GigwaController
 			Map<String, List<String>> projectsAndRuns = new LinkedHashMap<String, List<String>>();
 			modulesProjectsAndRuns.put(module, projectsAndRuns);
 
+			if (tokenManager.canUserCreateProjectInDB(SecurityContextHolder.getContext().getAuthentication(), module))
+				projectsAndRuns.put("", new ArrayList<String>());
+
 			MongoTemplate mongoTemplate = MongoTemplateManager.get(module);
 			Query q = new Query();
 			q.fields().exclude(GenotypingProject.FIELDNAME_SEQUENCES);
@@ -230,7 +235,7 @@ public class GigwaController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(genotypingDataImportSubmissionURL)
-	public @ResponseBody String importGenotypingData(HttpServletRequest request, @RequestParam("host") final String sHost, @RequestParam("module") final String sModule, @RequestParam("project") final String sProject, @RequestParam("run") final String sRun, @RequestParam(value="technology", required=false) final String sTechnology, @RequestParam(value="clearProjectData", required=false) final Boolean fClearProjectData, @RequestParam("mainFile") final String dataFile) throws Exception
+	public @ResponseBody String importGenotypingData(HttpServletRequest request, @RequestParam(value="host", required=false) final String sHost, @RequestParam("module") final String sModule, @RequestParam("project") final String sProject, @RequestParam("run") final String sRun, @RequestParam(value="technology", required=false) final String sTechnology, @RequestParam(value="clearProjectData", required=false) final Boolean fClearProjectData, @RequestParam("mainFile") final String dataFile) throws Exception
 	{
 		final String sNormalizedModule = Normalizer.normalize(sModule, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "").replaceAll(" ", "_");
 		final String processId = "IMPORT__GENOTYPING_DATA__" + sNormalizedModule + "__" + sProject + "__" + sRun + "__" + System.currentTimeMillis();
@@ -268,6 +273,9 @@ public class GigwaController
 			if (!fDatasourceExists)
 				try
 				{	// create it
+					if (sHost == null)
+						throw new Exception("No host was specified!");
+
 					MongoTemplateManager.createDataSource(sFinalModule, sHost, fIsCalledFromWithinLocalInstance ? null : System.currentTimeMillis() + 1000*60*60*24 /* 1 day */);
 					fDatasourceExists = true;
 				}
@@ -282,6 +290,11 @@ public class GigwaController
 			final String trimmedDataFile = dataFile.trim();
 			if (fDatasourceExists)
 			{
+				MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
+				GenotypingProject project = mongoTemplate.findOne(new Query(Criteria.where(GenotypingProject.FIELDNAME_NAME).is(sProject)), GenotypingProject.class);
+				if (project == null && !tokenManager.canUserCreateProjectInDB(SecurityContextHolder.getContext().getAuthentication(), sModule))
+					throw new Exception("You are not allowed to create a project in database " + sModule + "!");
+
 				final SecurityContext securityContext = SecurityContextHolder.getContext();
 				new Thread() {
 					public void run() {
