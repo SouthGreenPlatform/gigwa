@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
-    <wb-module deploy-name="gigwa">
+    <wb-module deploy-name="gigwa-1.2-RELEASE">
+        <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
-        <dependent-module archiveName="gigwa_arcad_sp1_seq_filter.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/gigwa_arcad_sp1_sequences/gigwa_arcad_sp1_seq_filter.jar">
+        <dependent-module archiveName="BrapiImpl-0.0.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/BrapiImpl/BrapiImpl">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="role_manager-0.1.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/role_manager/role_manager">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="mgdb-1.2-RELEASE.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/mgdb/mgdb">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="GenotypeFileManipulation-0.0.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/GenotypeFileManipulation/GenotypeFileManipulation">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="mgdb_export-1.2-RELEASE.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/mgdb_export/mgdb_export">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="gigwa"/>
