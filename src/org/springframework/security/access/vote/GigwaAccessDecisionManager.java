@@ -51,7 +51,7 @@ public class GigwaAccessDecisionManager extends AffirmativeBased
     	{
     		FilterInvocation fi = (FilterInvocation) object;
     		String sModule = fi.getRequest().getParameter("module");
-    		String username = authentication.isAuthenticated() ? "(" + ((User) authentication.getPrincipal()).getUsername() + ") " : "";
+    		String username = authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal()) ? "(" + ((User) authentication.getPrincipal()).getUsername() + ") " : "";
     		if (sModule != null && MongoTemplateManager.get(sModule) != null && !MongoTemplateManager.isModulePublic(sModule))
     		{		
     			int projId = -1;
