@@ -23,8 +23,11 @@
 <html>
 <head>
 	<link rel ="stylesheet" type="text/css" href="../css/main.css" title="style">
+	<script type="text/javascript" src="../js/brapiV1Client.js"></script>
 	<script type="text/javascript" src="../js/jquery-1.8.2.min.js"></script>
 	<script type="text/javascript">
+	var BRAPI_V1_URL_ENDPOINT;
+	
 	var projectModules = new Array();
 	<c:forEach var="moduleProjectsAndRuns" items="${modulesProjectsAndRuns}">
 	projectModules["${moduleProjectsAndRuns.key}"] = new Array();
@@ -95,11 +98,50 @@
 	
 	function launchImport()
 	{
+		var mainFileInput = $("input[name=mainFile]");
+		var mainFile = mainFileInput.val().trim();
+		
+		
+		var brapiParameters;
+		if (mainFile.toLowerCase().startsWith("http"))
+		{
+			if ($("div#brapiDataSelectionDiv").length == 0)
+			{
+				BRAPI_V1_URL_ENDPOINT = mainFile;
+				$("#importButton").attr('disabled', 'disabled');
+				$("<div id='brapiDataSelectionDiv'><img src='../img/progress.gif' /> Querying BRAPI service...</div>").insertBefore(mainFileInput);
+				if (!checkEndPoint())
+					return failAndHideBrapiDataSelectionDiv();
+
+				var mapList = readMapList();
+				var studyList = readStudyList("genotype");
+				$("#importButton").removeAttr('disabled');
+				if (mapList == null || studyList == null)
+					return failAndHideBrapiDataSelectionDiv();
+				if (mapList.length == 0)
+					return failAndHideBrapiDataSelectionDiv("No genome maps found!");
+				if (studyList.length == 0)
+					return failAndHideBrapiDataSelectionDiv("No genotyping studies found!");
+				
+				var mapListSelect = "Select a map <select id='brapiMapList' style='margin-bottom:5px;'>";
+				for (var i=0; i<mapList.length; i++)
+					mapListSelect += "<option value=\"" + mapList[i]['mapDbId'] + "\">" + (mapList[i]['name'] == null ? mapList[i]['mapDbId'] : mapList[i]['name']) + " [" + mapList[i]['markerCount'] + " markers]" + "</option>";
+				mapListSelect += "</select>";
+				var studyListSelect = "Select a study <select id='brapiStudyList'>";
+				for (var i=0; i<studyList.length; i++)
+					studyListSelect += "<option value=\"" + studyList[i]['studyDbId'] + "\">" + studyList[i]['name'] + " [" + readMarkerProfiles(studyList[i]['studyDbId']).length + " samples]" + "</option>";
+				studyListSelect += "</select>";
+				$("div#brapiDataSelectionDiv").html("<div style='float:right; color:#ffffff; font-weight:bold;'><a href='#' title='Close' style='font-weight:bold; float:right; color:#ff0000;' onclick=\"$('div#brapiDataSelectionDiv').remove(); BRAPI_V1_URL_ENDPOINT = null;\">X</a><div style='margin-top:20px;'>Select map and study<br/>then click IMPORT again</div></div>" + mapListSelect + "<br/>" + studyListSelect);
+				return;
+			}
+			
+			var brapiParameters = {studyDbId:$("select#brapiStudyList").val(), mapDbId:$("select#brapiMapList").val()};
+		}			
+		
 		var host = $("select#host").val();
 		var module = $("input[name=module]").val().trim();
 		var project = $("input[name=project]").val().trim();
 		var run = $("input[name=run]").val().trim();
-		var mainFile = $("input[name=mainFile]").val().trim();
 		
 		if (!isValidNewName(module) || !isValidNewName(project) || !isValidNewName(run))
 		{
@@ -137,7 +179,13 @@
 		$("#importButton").attr('disabled', 'disabled');
 		$("form select").attr('disabled', 'disabled');
 		$("form input").attr('disabled', 'disabled');
-		$.getJSON('<c:url value="<%= GigwaController.genotypingDataImportSubmissionURL %>" />', { host:host,module:module,project:project,run:run,technology:technology,clearProjectData:clearProjectData,mainFile:mainFile }, function(jsonResult) {
+		var params = { host:host,module:module,project:project,run:run,technology:technology,clearProjectData:clearProjectData,mainFile:mainFile };
+		if (typeof brapiParameters != 'undefined')
+		{
+			params['brapiParameter_mapDbId'] = brapiParameters['mapDbId'];
+			params['brapiParameter_studyDbId'] = brapiParameters['studyDbId'];
+		}
+		$.getJSON('<c:url value="<%= GigwaController.genotypingDataImportSubmissionURL %>" />', params, function(jsonResult) {
 			setTimeout("checkProcessProgress(\"../" + jsonResult + "\");", minimumProcessQueryIntervalUnit);
 		}).error(function(xhr, ajaxOptions, thrownError) {
 			$('div#progressDiv').html();
@@ -190,7 +238,8 @@
 	
 	function handleJsonError(xhr, ajaxOptions, thrownError)
 	{
-       	alert($.parseJSON(xhr.responseText)['errorMsg']);
+		var responseText = $.parseJSON(xhr.responseText);
+       	alert(responseText != null ? responseText['errorMsg'] : ("Error, return code " + xhr.status));
        	$('div#progressDiv').html();
 	}
 	
@@ -269,9 +318,10 @@
 		</tr>
 
 		<tr bgcolor='#ffeeee' height="53">
-		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>Supported formats:<br/>VCF, HapMap, PLINK</span></th>
+		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>Supported formats:<br/>VCF, HapMap, PLINK<br/>(beta: BrAPI service)</span></th>
 		<td colspan="2" align="center">
-		<input type="text" name="mainFile" style="width:460px;" value="" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK format)</td>
+		<input type="text" name="mainFile" style="width:460px;" value="" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK format)<br/>or BrAPI V1 service base URL (http://_____/brapi/v1)
+		</td>
 		</tr>
 	</table>
 	<p>

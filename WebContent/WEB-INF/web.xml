@@ -52,7 +52,7 @@
 		<welcome-file>index.do_</welcome-file>
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
-	
+
 	<filter>
 	    <filter-name>autoUnzipFilterChain</filter-name>
 	    <filter-class>fr.cirad.web.filter.AutoUnzipFilter</filter-class>

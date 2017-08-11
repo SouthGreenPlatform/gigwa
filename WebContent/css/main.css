@@ -8,6 +8,22 @@ body,select,input,th,td,p,div,span,textarea {
 	font-size: 10px;
 }
 
+div#brapiDataSelectionDiv{
+	text-align:left;
+	margin-top:-10px;
+	margin-left:-5px;
+	padding:4px; 
+	position:absolute;
+	z-index:1000;
+	color:#ffffff;
+	background-color:#000000;
+	opacity:.9;
+	filter:alpha(opacity=90);
+	-moz-opacity:0.9;
+	min-width:482px;
+	min-height:50px;
+}
+
 .infobulle {
 	display: none;
 	border: 0;

@@ -8,9 +8,9 @@
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
 	
 	<!-- Contents of this file are only used if secure mode has been activated in web.xml -->
-	
+
 	<context:component-scan base-package="fr.cirad.tools.data,fr.cirad.tools.security" />
-	
+
 	<secur:http request-matcher="regex" pattern="^.*/Authentication\.jsp.*$" security="none" />
 	<secur:http request-matcher="regex" pattern="^.*/WEB-INF\/jsp\/error\/403\.jsp.*$" security="none" />
 	<secur:http request-matcher="regex" pattern="^.*/css/.*$" security="none" />
