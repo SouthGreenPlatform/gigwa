@@ -303,9 +303,9 @@
 		</tr>
 
 		<tr bgcolor='#ffeeee' height="53">
-		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>Supported formats:<br/>VCF, HapMap, PLINK</span></th>
+		<th><label class="required">Genotype file path</label><br/><span style='font-weight:normal;'>Supported formats:<br/>VCF, HapMap, PLINK<br/>(beta: BrAPI service)</span></th>
 		<td colspan="2" align="center">
-		<input type="text" name="mainFile" style="width:460px;" value="http://localhost:6080/gigwa/rest/Sorghum-JGI_v1/brapi/v1" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK format)
+		<input type="text" name="mainFile" style="width:460px;" value="" /><br />Please provide absolute path on webserver filesystem (only specify .ped for PLINK format)<br/>or BrAPI V1 service base URL
 		</td>
 		</tr>
 	</table>

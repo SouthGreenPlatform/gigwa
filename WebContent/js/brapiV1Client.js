@@ -29,7 +29,7 @@ function checkEndPoint()
 	$.ajax({
 	    type:"GET",
 	    async:false,
-	    data: {pageSize:100},
+	    data: {pageSize:1000},
 	    url:BRAPI_V1_URL_ENDPOINT + URL_CALLS,
 	    traditional:true,
 	    timeout:TIMEOUT,
@@ -79,7 +79,7 @@ function readMapList()
 	    type:"GET",
 	    url:BRAPI_V1_URL_ENDPOINT + URL_MAPS,
 	    async:false,
-	    data: {pageSize:100},
+	    data: {pageSize:1000},
 	    timeout:TIMEOUT,
 	    success:function(jsonResponse) {
 	    	dataList = getDataList(jsonResponse);
@@ -98,8 +98,8 @@ function readStudyList(studyType)
 	    type:"GET",
 	    url:BRAPI_V1_URL_ENDPOINT + URL_STUDIES,
 	    async:false,
-	    data: {pageSize:100},
-	    data: {pageSize:100, studyType:(studyType == null ? null : studyType)},
+	    data: {pageSize:1000},
+	    data: {pageSize:1000, studyType:(studyType == null ? null : studyType)},
 	    timeout:TIMEOUT,
 	    success:function(jsonResponse) {
 	    	var dataList = getDataList(jsonResponse);

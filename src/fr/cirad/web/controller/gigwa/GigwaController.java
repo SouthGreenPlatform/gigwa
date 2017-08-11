@@ -21,6 +21,7 @@ import htsjdk.samtools.util.BlockCompressedInputStream;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.net.SocketTimeoutException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -302,13 +303,13 @@ public class GigwaController
 			                }
 			                catch (Exception e)
 			                {
-			                  LOG.error("Error importing " + dataFile, e);
-			                  progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
-			                  if (!fDatasourceAlreadyExisted)
-			                  {
-			                    MongoTemplateManager.removeDataSource(sNormalizedModule, true);
-			                    LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
-			                  }
+				                LOG.error("Error importing " + dataFile + (e instanceof SocketTimeoutException ? " (server-side needs maxParameterCount set to -1 in server.xml)" : ""), e);
+				                progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
+				                if (!fDatasourceAlreadyExisted)
+				                {
+				                	MongoTemplateManager.removeDataSource(sNormalizedModule, true);
+				                	LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
+				                }
 			                }
 			              else
 			              {

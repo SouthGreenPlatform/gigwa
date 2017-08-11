@@ -84,6 +84,7 @@ import com.mongodb.WriteResult;
 import fr.cirad.mgdb.exporting.IExportHandler;
 import fr.cirad.mgdb.exporting.individualoriented.AbstractIndividualOrientedExportHandler;
 import fr.cirad.mgdb.exporting.markeroriented.AbstractMarkerOrientedExportHandler;
+import fr.cirad.mgdb.importing.base.AbstractGenotypeImport;
 import fr.cirad.mgdb.model.mongo.maintypes.DBVCFHeader;
 import fr.cirad.mgdb.model.mongo.maintypes.DBVCFHeader.VcfHeaderId;
 import fr.cirad.mgdb.model.mongo.maintypes.VariantRunData.VariantRunDataId;
@@ -456,6 +457,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		}
 		mav.addObject("exportFormats", exportFormats);
 		mav.addObject("genomeBrowserURL", appConfig.get("genomeBrowser-" + sModule));
+//		AbstractGenotypeImport.buildSynonymMappings(MongoTemplateManager.get(sModule));
 		return mav;
 	}
 
