@@ -34,7 +34,7 @@
 
 <script type="text/javascript">
 var minimumProcessQueryIntervalUnit = 1000;
-$.getJSON('<c:url value="<%= AbstractVariantController.distinctSequencesInSelectionURL %>" />?module=${param.module}&project=${param.project}&processID=${param.processID}', {}, function(jsonResult){
+$.getJSON('<c:url value="<%= AbstractVariantController.distinctSequencesInSelectionURL %>" />?module=${param.module}&project=${param.project}&processID=' + encodeURIComponent('${param.processID}'), {}, function(jsonResult){
 	feedSequenceSelectAndLoadVariantTypeList(jsonResult);
 }).error(function(xhr, ajaxOptions, thrownError) {
  	alert(thrownError);

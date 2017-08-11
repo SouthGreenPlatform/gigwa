@@ -17,6 +17,7 @@
 package fr.cirad.web.controller.gigwa;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,7 +97,7 @@ public class DefaultVariantController extends AbstractVariantController
 	 * @see fr.cirad.web.controller.gigwa.base.AbstractVariantController#getProjectVariantTypes(java.lang.String, int)
 	 */
 	@Override
-	protected List<String> getProjectVariantTypes(String sModule, int projId) throws Exception
+	protected Collection<String> getProjectVariantTypes(String sModule, int projId) throws Exception
 	{
 		MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 		GenotypingProject proj = mongoTemplate.findById(projId, GenotypingProject.class);

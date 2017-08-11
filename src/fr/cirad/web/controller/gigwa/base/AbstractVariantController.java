@@ -329,7 +329,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @return the project variant types
 	 * @throws Exception the exception
 	 */
-	protected abstract List<String> getProjectVariantTypes(String sModule, int projId) throws Exception;
+	protected abstract Collection<String> getProjectVariantTypes(String sModule, int projId) throws Exception;
 
 	/**
 	 * Gets the project id to name map.
@@ -1468,7 +1468,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		DBObject query = count == nTempVarCount ? null : new BasicDBObject(VariantData.FIELDNAME_VERSION, new BasicDBObject("$exists", true));
 		String sequenceField = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE;
 		String startField = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE;
-		BasicDBObject sort = new BasicDBObject("_id", 1);	/* necessary for MgdbDao.getSampleGenotypes to work properly */		DBObject projection = new BasicDBObject();
+		BasicDBObject sort = new BasicDBObject("_id", 1);	/* necessary for MgdbDao.getSampleGenotypes to work properly */
+		DBObject projection = new BasicDBObject();
 		projection.put(sequenceField, 1);
 		projection.put(startField, 1);
 
