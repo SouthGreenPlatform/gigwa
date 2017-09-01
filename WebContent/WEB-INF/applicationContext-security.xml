@@ -19,9 +19,10 @@
 	<secur:http request-matcher="regex" pattern="^.*\/.*filt\/tmpOutput\/.*\.zip.*$" security="none" />
 	<secur:http request-matcher="regex" pattern="^.*\/(gigwa|.*filt)/progressIndicator.json_\?.*$" security="none" />
 	
-	<secur:http realm="GIGwA WebApp Security Administration" request-matcher="regex" access-decision-manager-ref="accessDecisionManager">
+	<secur:http realm="GIGwA WebApp Security Administration" request-matcher="regex" access-decision-manager-ref="accessDecisionManager" entry-point-ref="authenticationEntryPoint">
 	  <secur:intercept-url pattern="^.*\/gigwa/import\.do(\?.*$|$)" access="IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
-	  <secur:intercept-url pattern="^.*\/.*filt\/.*\.(do|json)\?.*module=.*(&amp;.*$|$)" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
+	  <secur:intercept-url pattern="^.*\/.*filt\/.*\.do\?.*module=.*(&amp;.*$|$)" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
+	  <secur:intercept-url pattern="^.*\/.*filt\/.*\.json(\?.*$|$)" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
 	  <secur:intercept-url pattern="^.*\/gigwa/genotypingDataImport\.json\?.*$" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
 
 	  <secur:form-login login-page="/Authentication.jsp" always-use-default-target="true" default-target-url="/gigwa/" />
@@ -63,4 +64,9 @@
     </bean>
     
     <bean id="webExpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" />
+    
+    <!-- This bean allows handling session timeouts separately between ajax and standard http calls -->
+    <bean id="authenticationEntryPoint" class="fr.cirad.tools.security.AjaxAwareAuthenticationEntryPoint">
+        <constructor-arg value="/Authentication.jsp"/>
+	</bean>
 </beans>

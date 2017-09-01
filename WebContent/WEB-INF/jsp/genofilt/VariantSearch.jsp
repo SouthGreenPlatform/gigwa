@@ -488,8 +488,11 @@
 		}
 		
 		function handleJsonError(xhr, ajaxOptions, thrownError) {
-			if ("parsererror" == ajaxOptions && xhr.responseText.indexOf("j_spring_security_check") > -1)
-				top.location.reload();	// looks like a session-timeout
+// 			if ("parsererror" == ajaxOptions && xhr.responseText.indexOf("j_spring_security_check") > -1)
+// 				top.location.reload();	// looks like a session-timeout
+				
+			if (xhr.status == 403)
+				parent.location.href = '<c:url value="/Authentication.jsp" />';
 
            	$('#errorAlertAnchor').attr("onclick", "alert(unescape('" + escape($.parseJSON(xhr.responseText)['errorMsg']) + "'));");
            	$("div#exportFormatDetails").hide();
