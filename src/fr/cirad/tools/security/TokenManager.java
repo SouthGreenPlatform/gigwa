@@ -63,15 +63,21 @@ public class TokenManager extends AbstractTokenManager {
     private Map<String, Long> tokenLastUseTimes = new HashMap<>();
     private Map<String, Authentication> tokenToAuthenticationMap = new HashMap<>();
 
-    static private int sessionTimeoutInSeconds = 3600;	// defaults to one hour
-
 	@Autowired private ReloadableInMemoryDaoImpl userDao;
 	@Autowired @Qualifier("authenticationManager") private AuthenticationManager authenticationManager;
 
+	protected int sessionTimeoutInSeconds = 3600;	// one hour by default
+
+	@Override
     public int getSessionTimeoutInSeconds() {
         return sessionTimeoutInSeconds;
     }
-
+    
+    @Override
+    public void setSessionTimeoutInSeconds(int sessionTimeoutInSeconds) {
+        this.sessionTimeoutInSeconds = sessionTimeoutInSeconds;
+    }
+    
     /**
      * update an existing token's expiry date
      *
@@ -83,8 +89,6 @@ public class TokenManager extends AbstractTokenManager {
     	if (token == null)
     		return;
 
-    	DecodedJWT t = JWT.decode(token);
-    	System.out.println(t.getExpiresAt());
     	if (!tokenLastUseTimes.keySet().contains(token))
     		LOG.debug("Adding token : " + token);
         tokenLastUseTimes.put(token, dateTime);
@@ -98,8 +102,9 @@ public class TokenManager extends AbstractTokenManager {
      * @param module
      * @return true if allowed to read some contents of a database
      */
+    @Override
     public boolean canUserReadDB(String token, String module) {
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	boolean fResult = canUserReadDB(authentication, module);
@@ -115,6 +120,7 @@ public class TokenManager extends AbstractTokenManager {
      * @param module
      * @return true if allowed to read some contents of a database
      */
+    @Override
     public boolean canUserReadDB(Authentication authentication, String module) {
         boolean hasAccess = false;
         if (MongoTemplateManager.isModulePublic(module))
@@ -137,7 +143,7 @@ public class TokenManager extends AbstractTokenManager {
      * @return true if allowed to read some contents of a database
      */
     public boolean canUserWriteToDB(String token, String module) {
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	boolean fResult = canUserWriteToDB(authentication, module);
@@ -171,7 +177,7 @@ public class TokenManager extends AbstractTokenManager {
      * @return true if allowed to read some contents of a database
      */
     public boolean canUserCreateProjectInDB(String token, String module) {
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	boolean fResult = canUserCreateProjectInDB(authentication, module);
@@ -226,7 +232,7 @@ public class TokenManager extends AbstractTokenManager {
      * @return List<String> readable modules
      */
     public Collection<String> listReadableDBs(String token) {
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	Collection<String> authorizedModules = listReadableDBs(authentication);
@@ -241,7 +247,7 @@ public class TokenManager extends AbstractTokenManager {
      * @return List<String> writable modules
      */
     public Collection<String> listWritableDBs(String token) {
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	Collection<String> authorizedModules = listWritableDBs(authentication);
@@ -274,7 +280,7 @@ public class TokenManager extends AbstractTokenManager {
     
 	public boolean canUserWriteToProject(String token, String sModule, int projectId)
 	{
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	boolean fResult = canUserWriteToProject(authentication, sModule, projectId);
@@ -315,9 +321,10 @@ public class TokenManager extends AbstractTokenManager {
 		return false;
 	}
     
+	@Override
     public boolean canUserReadProject(String token, String module, Comparable projectId)
     {
-    	Authentication authentication = tokenToAuthenticationMap.get(token);
+    	Authentication authentication = getAuthenticationFromToken(token);
     	if (authentication == null)
     		authentication = SecurityContextHolder.getContext().getAuthentication();
     	boolean fResult = canUserReadProject(authentication, module, projectId);
@@ -326,6 +333,7 @@ public class TokenManager extends AbstractTokenManager {
         return fResult;
     }
     
+	@Override
 	public boolean canUserReadProject(Authentication authentication, String sModule, Comparable projectId)
 	{
 		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null;
@@ -367,22 +375,21 @@ public class TokenManager extends AbstractTokenManager {
      *
      * @throws ParseException
      */
-    public void clearTokenMap() throws ParseException {
+	@Override
+    public void cleanupTokenMap() throws ParseException {
 
-        List<String> listOldProcess = new ArrayList<>();
+        List<String> expiredTokens = new ArrayList<>();
         for (String token : tokenLastUseTimes.keySet()) {
         	Long time = tokenLastUseTimes.get(token);            
-            if (System.currentTimeMillis() - time > sessionTimeoutInSeconds/60) {
-                listOldProcess.add(token);	// token has expired
-            }
+            if (System.currentTimeMillis() - time > sessionTimeoutInSeconds * 1000)
+                expiredTokens.add(token);	// token has expired
         }
-        for (String expiredToken : listOldProcess) {
+        for (String expiredToken : expiredTokens) {
             MongoTemplateManager.dropAllTempColls(expiredToken);
-            tokenLastUseTimes.remove(expiredToken);
-            detachAuthenticationFromToken(expiredToken);
+            removeToken(expiredToken);
         }
-        if (listOldProcess.size() > 0)
-        	LOG.debug("clearTokenMap removed " + listOldProcess.size() + " token(s)");
+        if (expiredTokens.size() > 0)
+        	LOG.debug("cleanupTokenMap removed " + expiredTokens.size() + " token(s)");
     }
     
 	public void reloadUserPermissions(SecurityContext securityContext) {
@@ -392,11 +399,11 @@ public class TokenManager extends AbstractTokenManager {
 
     @Override
     public boolean removeToken(String token) {
-		return tokenLastUseTimes.remove(token) != null;
+		return tokenToAuthenticationMap.remove(token) != null && tokenLastUseTimes.remove(token) != null;
 	}
 	
     @Override
-    public String createAndAttachToken(int nMaxInactiveSeconds, String username, String password) throws IllegalArgumentException, IOException
+    public String createAndAttachToken(String username, String password) throws IllegalArgumentException, IOException
     {
     	LOG.debug("createAndAttachToken called");
     	boolean fLoginAttempt = username != null && username.length() > 0;
@@ -420,9 +427,7 @@ public class TokenManager extends AbstractTokenManager {
 			LOG.info("Authentication failed for user " + username);
 		else
 		{	// either login succeeded or anonymous user without login attempt
-		    token = generateToken(nMaxInactiveSeconds);    	
-		    updateToken(token, System.currentTimeMillis());
-			attachAuthenticationToToken(token, authentication);	// keep track to be able to check for permissions in future calls
+		    token = generateToken(authentication);    	
 			if (!"anonymousUser".equals(authentication.getName()))
 				LOG.info("User " + authentication.getName() + " was provided with token " + token);
 			else// if (fLoginAttempt)
@@ -430,28 +435,26 @@ public class TokenManager extends AbstractTokenManager {
 		}
     	return token;
     }
-    
-    @Override
-    public void attachAuthenticationToToken(String token, Authentication auth) {
-    	tokenToAuthenticationMap.put(token, auth);
-    }
-
-
-    @Override
-    public boolean detachAuthenticationFromToken(String token) {
-    	return null != tokenToAuthenticationMap.remove(token);
-    }
 
     @Override
     public Authentication getAuthenticationFromToken(String token) {
+    	Long lastUseTime = tokenLastUseTimes.get(token);
+    	if (lastUseTime == null)
+    		return null;
+
+        if (System.currentTimeMillis() - lastUseTime > sessionTimeoutInSeconds * 1000)
+        	removeToken(token);	// it's expired
     	return tokenToAuthenticationMap.get(token);
     }
     
     @Override
-    public String generateToken(int nMaxInactiveSeconds) throws IllegalArgumentException, UnsupportedEncodingException
+    public String generateToken(Authentication auth/*, int nMaxInactiveSeconds*/) throws IllegalArgumentException, UnsupportedEncodingException
     {
     	Algorithm algorithm = Algorithm.HMAC256(Helper.convertToMD5(getClass().getName()));
     	Date now = new Date();
-	    return JWT.create().withIssuer("auth0").withIssuedAt(now).withExpiresAt(new Date(now.getTime() + nMaxInactiveSeconds * 1000)).sign(algorithm);
+	    String token = JWT.create().withIssuer("auth0").withIssuedAt(now)/*.withExpiresAt(new Date(now.getTime() + nMaxInactiveSeconds * 1000))*/.sign(algorithm);
+	    tokenToAuthenticationMap.put(token, auth);
+	    updateToken(token, System.currentTimeMillis());
+	    return token;
     }
 }

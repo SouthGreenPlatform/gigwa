@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -365,12 +366,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	public String getViewURL() {
 		return variantSearchPageURL;
 	}
-	
-	@RequestMapping("/handleError")
-	public ModelAndView dde(HttpServletRequest request, HttpServletResponse response, Exception ex)
-	{
-		return new ModelAndView("ouie");
-	}
 
 	/**
 	 * This method get the query in relation with a specific genotype code.
@@ -394,20 +389,14 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	@RequestMapping(variantSearchPageURL)
 	protected ModelAndView setupSearchPage(final HttpServletRequest request, @RequestParam("module") String sModule) throws Exception
 	{
-		new Thread()
+		try
 		{
-			public void run()
-			{
-				try
-				{
-					cleanupOldTempData(request);
-				}
-				catch (IOException e1)
-				{
-					LOG.error("Unable to cleanup old temporary data", e1);
-				}
-			}
-		}.start();
+			cleanupOldTempData(request);
+		}
+		catch (Exception e)
+		{
+			LOG.error("Unable to cleanup old temporary data", e);
+		}
         
 //		response.addHeader("X-Frame-Options", "ALLOW-FROM http://172.20.30.22:8081");
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -434,8 +423,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			exportFormats.put(exportHandler.getExportFormatName(), info);
 		}
 		
-		String token = tokenManager.generateToken(request.getSession().getMaxInactiveInterval());
-		tokenManager.attachAuthenticationToToken(token, authentication);
+		String token = tokenManager.generateToken(authentication);
 		mav.addObject("token", token);
 		mav.addObject("exportFormats", exportFormats);
 		mav.addObject("genomeBrowserURL", appConfig.get("genomeBrowser-" + sModule));
@@ -1230,7 +1218,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			}
 		}
 		
-		if (page == 0 && tmpVarCollOrView.getIndexInfo().size() <= 1)
+		if (fGotTempData && page == 0 && tmpVarCollOrView.getIndexInfo().size() <= 1)
 			new Thread() {	// temp data needs to be indexed for faster browsing
 				public void run() {
 	    			long b4 = System.currentTimeMillis();
@@ -1642,12 +1630,12 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * Cleanup old temp data.
 	 *
 	 * @param request the request
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws Exception
 	 */
-	private void cleanupOldTempData(HttpServletRequest request) throws IOException
+	private void cleanupOldTempData(HttpServletRequest request) throws Exception
 	{
 		if (request.getSession() == null)
-			return;	// working around some random bug
+			throw new Exception("Invalid request object");
 
 		long nowMillis = new Date().getTime();
 		File filterOutputLocation = new File(request.getSession().getServletContext().getRealPath(File.separator + FRONTEND_URL + File.separator + TMP_OUTPUT_FOLDER));
@@ -1692,7 +1680,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	{
 		String collName = getTemporaryVariantCollection(sModule, token, false).getName();
 		MongoTemplateManager.get(sModule).dropCollection(collName);
-		boolean fDetachedToken = tokenManager.detachAuthenticationFromToken(token);
+		boolean fDetachedToken = tokenManager.removeToken(token);
 		LOG.debug("Dropped collection " + sModule + "." + collName + (fDetachedToken ? " and detached token " + token : ""));
 	}
 
@@ -1722,6 +1710,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	@RequestMapping(distinctSequencesInSelectionURL)
 	protected @ResponseBody Collection<String> distinctSequencesInSelection(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("processID") String processID) throws Exception
 	{
+		processID = URLDecoder.decode(processID, "UTF-8");
 		String token = processID.substring(1 + processID.indexOf('|'));
 		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
 		if (tmpVarColl.count() == 0)
