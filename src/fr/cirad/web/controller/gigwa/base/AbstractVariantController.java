@@ -439,14 +439,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(individualListURL)
-	/**
-	 * This method returns the list of individual from cache to supply the interface VariantSearch
-	 *
-	 * @param sModule
-	 * @param projId
-	 * @return
-	 * @throws Exception
-	 */
 	protected @ResponseBody List<String> listIndividualsInAlphaNumericOrder(@RequestParam("module") String sModule, @RequestParam("project") int project) throws Exception
 	{
 		List<String> indArray = new ArrayList(getIndividualsInDbOrder(sModule, project));
@@ -463,17 +455,10 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(variantTypesListURL)
-	/**
-	 * This method returns the list of variant types from cache to supply the interface VariantSearch
-	 *
-	 * @param sModule
-	 * @param projId
-	 * @return
-	 * @throws Exception
-	 */
 	protected @ResponseBody List<String> listVariantTypesSorted(@RequestParam("module") String sModule, @RequestParam("project") int projId) throws Exception
 	{
 		List<String> variantTypesArray = new ArrayList(getProjectVariantTypes(sModule, projId));
+		variantTypesArray.remove(null);	// just in case
 		Collections.sort(variantTypesArray, new AlphaNumericStringComparator());
 		return variantTypesArray;
 	}
@@ -1834,7 +1819,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
 		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
-		boolean fStillGotUnwantedTempVariants = count < tmpVarColl.count();
+//		boolean fStillGotUnwantedTempVariants = count < tmpVarColl.count();
 		long nTempVarCount = mongoTemplate.count(new Query(), tmpVarColl.getName());
 		final boolean fWorkingOnFullDataset = mongoTemplate.count(null, VariantData.class) == count;
 		if (!fWorkingOnFullDataset && nTempVarCount == 0)
@@ -1886,8 +1871,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		{
 			List<Criteria> crits = new ArrayList<Criteria>();
 			crits.add(Criteria.where(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE).is(displayedSequence));
-			if (fStillGotUnwantedTempVariants)
-				crits.add(Criteria.where(VariantData.FIELDNAME_VERSION).exists(true));
+//			if (fStillGotUnwantedTempVariants)
+//				crits.add(Criteria.where(VariantData.FIELDNAME_VERSION).exists(true));
 			if (displayedVariantType != null)
 				crits.add(Criteria.where(VariantData.FIELDNAME_TYPE).is(displayedVariantType));
 			String startSitePath = VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_START_SITE;
