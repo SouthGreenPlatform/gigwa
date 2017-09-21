@@ -87,7 +87,7 @@
 			    type:"POST",
 			    url:'<c:url value="<%=AbstractVariantController.variantCountURL%>" />',
 			    traditional:true,
-			    data:{module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(),sequences:getSelectedSequences(),individuals:getSelectedIndividuals(),gtCode:$('#gtCode').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:$('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ','),variantEffects:$('#variantEffects').val(),processID:countProcessID},
+			    data:{module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(),sequences:getSelectedSequences(),individuals:getSelectedIndividuals(),gtPattern:$('#gtPattern').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:$('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ','),variantEffects:$('#variantEffects').val(),processID:countProcessID},
 			    success:function(jsonCountResult) {
 			    	if (currentProgressQueryID != countProcessID)
 			    		return;	// obsolete
@@ -142,7 +142,7 @@
 			    type:"POST",
 			    url:'<c:url value="<%=AbstractVariantController.variantFindURL%>" />',
 			    traditional:true,
-			    data:{ module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(), sequences:getSelectedSequences(),individuals:getSelectedIndividuals(),gtCode:$('#gtCode').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:$('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ','),variantEffects:$('#variantEffects').val(),wantedFields:getResultTableFields(),sortBy:encodeURIComponent(getVariable('sortBy')),sortDir:getVariable('sortDir'),page:getVariable('pageNumber'),size:getVariable('pageSize'),processID:findProcessID },
+			    data:{ module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(), sequences:getSelectedSequences(),individuals:getSelectedIndividuals(),gtPattern:$('#gtPattern').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:$('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ','),variantEffects:$('#variantEffects').val(),wantedFields:getResultTableFields(),sortBy:encodeURIComponent(getVariable('sortBy')),sortDir:getVariable('sortDir'),page:getVariable('pageNumber'),size:getVariable('pageSize'),processID:findProcessID },
 			    success:function(jsonResult) {
 			    	if (currentProgressQueryID != findProcessID)
 			    		return;	// obsolete
@@ -172,7 +172,7 @@
 			    type:"POST",
 			    url:'<c:url value="<%=AbstractVariantController.variantListURL%>" />',
 			    traditional:true,
-			    data:{ module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(), sequences:getSelectedSequences(),individuals:getSelectedIndividuals(),gtCode:$('#gtCode').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:$('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ','),variantEffects:$('#variantEffects').val(),wantedFields:getResultTableFields(),sortBy:encodeURIComponent(getVariable('sortBy')),sortDir:getVariable('sortDir'),page:getVariable('pageNumber'),size:getVariable('pageSize'),processID:currentProgressQueryID },
+			    data:{ module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(), sequences:getSelectedSequences(),individuals:getSelectedIndividuals(),gtPattern:$('#gtPattern').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:$('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ','),variantEffects:$('#variantEffects').val(),wantedFields:getResultTableFields(),sortBy:encodeURIComponent(getVariable('sortBy')),sortDir:getVariable('sortDir'),page:getVariable('pageNumber'),size:getVariable('pageSize'),processID:currentProgressQueryID },
 			    success:function(jsonResult) {
 				   	if (jsonResult == "")
 				   	{
@@ -546,13 +546,13 @@
 			return resultTableFields;			
 		}
 		
-		function enableMafOnlyIfGtCodeAndAlleleNumberAllowTo()
+		function enableMafOnlyIfGtPatternAndAlleleNumberAllowTo()
 		{
-			var gtCodebox = document.getElementById('gtCode');
-			var gtCodeAllows = !gtCodebox.options[5].selected && !gtCodebox.options[7].selected;
+			var gtPatternbox = document.getElementById('gtPattern');
+			var gtPatternAllows = !gtPatternbox.options[5].selected && !gtPatternbox.options[7].selected;
 			
 			var alleleNumber = $('#alleleCount option').length == 1 ? $('#alleleCount option:eq(0)').val() :getSelectedNumberOfAlleles(true);
-			if (ploidy > 2 || !gtCodeAllows || alleleNumber != 2)
+			if (ploidy > 2 || !gtPatternAllows || alleleNumber != 2)
 			{
 				$('#minmaf').attr('disabled', 'disabled');
 				$('#minmaf').val("0");
@@ -630,7 +630,7 @@
 		
 		function applyIndividualSelection()
 		{
-			var selectWidget = document.getElementById('gtCode');
+			var selectWidget = document.getElementById('gtPattern');
 			var opt = selectWidget.getElementsByTagName('option');
 			var selectIndividualCSV = getSelectedIndividuals();
 			var nSelectedIndividualCount = selectIndividualCSV == "" ? 0 :selectIndividualCSV.split(";").length;
@@ -651,7 +651,7 @@
 		
  		function disableBiAllelicSpecificQueriesIfNeeded()
  		{
-			var selectWidget = document.getElementById('gtCode');
+			var selectWidget = document.getElementById('gtPattern');
 			var opt = selectWidget.getElementsByTagName('option');
 			var alleleNumber = $('#alleleCount option').length == 1 ? $('#alleleCount option:eq(0)').val() :getSelectedNumberOfAlleles(true);
 			opt[11].disabled = ploidy != 2 || alleleNumber != 2;
@@ -659,7 +659,7 @@
 			if (opt[selectWidget.selectedIndex].disabled)
 				opt[0].selected = true;
 			
- 			$('#gtCode').change();
+ 			$('#gtPattern').change();
  		}		
 		
 		function isNumberKey(evt)
@@ -695,7 +695,7 @@
 	        
 	        var exportProcessID = "variantExport" + new Date().getTime() + "|" + interfaceID;
 	        currentProgressQueryID = exportProcessID;
-	        $("#variantExportFrame").attr('src', "<c:url value="<%=AbstractVariantController.variantExportPageURL%>" />?module=${param.module}&project=" + $('#project').val() + "&keepExportOnServer=" + ($('#keepExportOnServer').attr('checked') == 'checked' ? 'true' :'false') + "&variantTypes=" + getSelectedVariantTypes() + "&sequences=" + getSelectedSequences() + "&gtCode=" + $('#gtCode').val() + "&individuals=" + getSelectedIndividuals() + "&genotypeQualityThreshold=" + $('#genotypeQualityThreshold').val() + "&readDepthThreshold=" + $('#readDepthThreshold').val() + "&missingData=" + $('#missingdata').val() + "&minmaf=" + $('#minmaf').val() + "&maxmaf=" + $('#maxmaf').val() + "&minposition=" + $('#minposition').val() + "&maxposition=" + $('#maxposition').val() + "&alleleCount=" + getSelectedNumberOfAlleles(false) + "&exportSelectedIndividualsOnly=" + ($('#exportSelectedIndividualsOnly').attr('checked') == 'checked' ? 'true' :'false') + "&geneName=" + encodeURIComponent($('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ',')) + "&variantEffects=" + ($('#variantEffects').val() == null ? "" :$('#variantEffects').val()) + "&exportFormat=" + $('#exportFormat').val() + "&processID=" + encodeURIComponent(exportProcessID));
+	        $("#variantExportFrame").attr('src', "<c:url value="<%=AbstractVariantController.variantExportPageURL%>" />?module=${param.module}&project=" + $('#project').val() + "&keepExportOnServer=" + ($('#keepExportOnServer').attr('checked') == 'checked' ? 'true' :'false') + "&variantTypes=" + getSelectedVariantTypes() + "&sequences=" + getSelectedSequences() + "&gtPattern=" + $('#gtPattern').val() + "&individuals=" + getSelectedIndividuals() + "&genotypeQualityThreshold=" + $('#genotypeQualityThreshold').val() + "&readDepthThreshold=" + $('#readDepthThreshold').val() + "&missingData=" + $('#missingdata').val() + "&minmaf=" + $('#minmaf').val() + "&maxmaf=" + $('#maxmaf').val() + "&minposition=" + $('#minposition').val() + "&maxposition=" + $('#maxposition').val() + "&alleleCount=" + getSelectedNumberOfAlleles(false) + "&exportSelectedIndividualsOnly=" + ($('#exportSelectedIndividualsOnly').attr('checked') == 'checked' ? 'true' :'false') + "&geneName=" + encodeURIComponent($('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ',')) + "&variantEffects=" + ($('#variantEffects').val() == null ? "" :$('#variantEffects').val()) + "&exportFormat=" + $('#exportFormat').val() + "&processID=" + encodeURIComponent(exportProcessID));
 		}
 		
 		function closeDialog()
@@ -769,7 +769,7 @@
 	        	}
 	        });
 	        
-	        postDataToIFrame("chartFrame", '<c:url value="<%= AbstractVariantController.chartPageURL %>" />', {chartType:'density',module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(),sequences:getSelectedSequences(),gtCode:$('#gtCode').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:encodeURIComponent($('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ',')),variantEffects:($('#variantEffects').val() == null ? "" :$('#variantEffects').val()),individuals:getSelectedIndividuals(),processID:encodeURIComponent(currentProgressQueryID)});
+	        postDataToIFrame("chartFrame", '<c:url value="<%= AbstractVariantController.chartPageURL %>" />', {chartType:'density',module:'${param.module}',project:$('#project').val(),variantTypes:getSelectedVariantTypes(),sequences:getSelectedSequences(),gtPattern:$('#gtPattern').val(),genotypeQualityThreshold:$('#genotypeQualityThreshold').val(),readDepthThreshold:$('#readDepthThreshold').val(),missingData:$('#missingdata').val(),minmaf:$('#minmaf').val(),maxmaf:$('#maxmaf').val(),minposition:$('#minposition').val(),maxposition:$('#maxposition').val(),alleleCount:getSelectedNumberOfAlleles(false),geneName:encodeURIComponent($('#geneName').val().trim().replace(new RegExp(' , ', 'g'), ',')),variantEffects:($('#variantEffects').val() == null ? "" :$('#variantEffects').val()),individuals:getSelectedIndividuals(),processID:encodeURIComponent(currentProgressQueryID)});
 		}
 		
 		window.onbeforeunload = function (e) {
@@ -827,13 +827,13 @@
 						<div id="individualCount">&nbsp;</div> <select size="14" multiple id="individuals" name="individuals" style="min-width:70px; max-width:170px;"
 						onchange="dirtyForm(); applyIndividualSelection();"></select></td>
 					<td>&nbsp;</td>
-					<td valign="top" style="min-width:350px;"><b>Genotypes:</b> <select id="gtCode"
-						onchange="dirtyForm(); $('#gtCodeDesc').html(options[selectedIndex].title); enableMafOnlyIfGtCodeAndAlleleNumberAllowTo();">
-							<c:forEach var="code" items="${genotypeCodes}">
+					<td valign="top" style="min-width:350px;"><b>Genotypes:</b> <select id="gtPattern"
+						onchange="dirtyForm(); $('#gtPatternDesc').html(options[selectedIndex].title); enableMafOnlyIfGtPatternAndAlleleNumberAllowTo();">
+							<c:forEach var="code" items="${genotypePatterns}">
 								<option value="${code.key}" title="${code.value}">${code.key}</option>
 							</c:forEach>
-					</select> <img src="../img/icon_qmark.png" style="position:absolute; margin-top:3px;" onmouseover="$('div#gtCodeDesc').css('display', 'inline');" onmouseout="$('div#gtCodeDesc').hide();" /> <br />
-						<div class='infobulle' id='gtCodeDesc'></div>
+					</select> <img src="../img/icon_qmark.png" style="position:absolute; margin-top:3px;" onmouseover="$('div#gtPatternDesc').css('display', 'inline');" onmouseout="$('div#gtPatternDesc').hide();" /> <br />
+						<div class='infobulle' id='gtPatternDesc'></div>
 
 						<div id="filterOnGQandDP" style="height:50px;">
 							<div style="margin-top:5px;">

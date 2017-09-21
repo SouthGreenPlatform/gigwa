@@ -189,48 +189,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	/** The Constant distinctSequencesInSelectionURL. */
 	static final public String distinctSequencesInSelectionURL = "/" + FRONTEND_URL + "/distinctSequencesInSelection.json";
 
-	/** The Constant GENOTYPE_CODE_LABEL_ALL. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL = "Any";
-
-	/** The Constant GENOTYPE_CODE_LABEL_NOT_ALL_SAME. */
-	static final protected String GENOTYPE_CODE_LABEL_NOT_ALL_SAME = "Not all same";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_SAME. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_SAME = "All same";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_DIFFERENT. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_DIFFERENT = "All different";
-
-	/** The Constant GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT. */
-	static final protected String GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT = "Not all different";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF = "All Homozygous Ref";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF. */
-	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF = "At least one Homozygous Ref";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR = "All Homozygous Var";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR. */
-	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR = "At least one Homozygous Var";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS. */
-	static final protected String GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS = "All Heterozygous";
-
-	/** The Constant GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS. */
-	static final protected String GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS = "At least one Heterozygous";
-
-	/** The Constant GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY. */
-	static final protected String GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY = "Without abnormal heterozygosity";
-
-	/** The Constant genotypeCodeToDescriptionMap. */
-	static final protected HashMap<String, String> genotypeCodeToDescriptionMap = new LinkedHashMap<String, String>();
-
-	/** The Constant genotypeCodeToQueryMap. */
-	static final protected HashMap<String, String> genotypeCodeToQueryMap = new HashMap<String, String>();
-
 	/** The Constant MESSAGE_TEMP_RECORDS_NOT_FOUND. */
 	static final public String MESSAGE_TEMP_RECORDS_NOT_FOUND = "Unable to find temporary records: please SEARCH again!";
 
@@ -246,31 +204,6 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	static
 	{
 		nf.setMaximumFractionDigits(4);
-
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL, "This will return all variants whithout applying any filters");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_SAME, "This will return variants where not all selected individuals have the same genotype");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_SAME, "This will return variants where all selected individuals have the same genotype");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_DIFFERENT, "This will return variants where none of the selected individuals have the same genotype");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT, "This will return variants where some of the selected individuals have the same genotypes");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF, "This will return variants where selected individuals are all homozygous with the reference allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF, "This will return variants where selected individuals are at least one homozygous with the reference allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR, "This will return variants where selected individuals are all homozygous with an alternate allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR, "This will return variants where selected individuals are at least one homozygous with an alternate allele");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS, "This will return variants where selected individuals are all heterozygous");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS, "This will return variants where selected individuals are at least one heterozygous");
-		genotypeCodeToDescriptionMap.put(GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY, "This will return variants where each allele found in heterozygous genotypes is also found in homozygous ones (only for diploid, bi-allelic data)");
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL, null);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_SAME, "$eq");
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_SAME, "$eq" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_NEGATION_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_DIFFERENT, "$ne");
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_NOT_ALL_DIFFERENT, "$ne" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_NEGATION_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_REF, "^0(/0)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_REF, "^0(/0)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HOMOZYGOUS_VAR, "^([1-9][0-9]*)(/\\1)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HOMOZYGOUS_VAR, "^([1-9][0-9]*)(/\\1)*$|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ALL_HETEROZYGOUS, "([0-9])([0-9])*(/(?!\\1))+([0-9])*|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_ALL_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_ATL_ONE_HETEROZYGOUS, "([0-9])([0-9])*(/(?!\\1))+([0-9])*|^$" + GenotypingDataQueryBuilder.AGGREGATION_QUERY_REGEX_APPLY_TO_AT_LEAST_ONE_IND_SUFFIX);
-		genotypeCodeToQueryMap.put(GENOTYPE_CODE_LABEL_WITHOUT_ABNORMAL_HETEROZYGOSITY, GenotypingDataQueryBuilder.AGGREGATION_QUERY_WITHOUT_ABNORMAL_HETEROZYGOSITY);
 	}
 
 	/**
@@ -370,12 +303,12 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	/**
 	 * This method get the query in relation with a specific genotype code.
 	 *
-	 * @param gtCode the gt code
+	 * @param gtPattern the gt code
 	 * @return the query for genotype code
 	 */
-	public static String getQueryForGenotypeCode(String gtCode)
+	public static String getQueryForGenotypePattern(String gtPattern)
 	{
-		return genotypeCodeToQueryMap.get(gtCode);
+		return GenotypingDataQueryBuilder.getGenotypePatternToQueryMap().get(gtPattern);
 	}
 
 	/**
@@ -406,7 +339,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			if (tokenManager.canUserReadProject(authentication, sModule, projectId))
 				allowedProjects.put(projectId, projects.get(projectId));
 		mav.addObject("projects", allowedProjects);
-		mav.addObject("genotypeCodes", genotypeCodeToDescriptionMap);
+		mav.addObject("genotypePatterns", GenotypingDataQueryBuilder.getGenotypePatternToDescriptionMap());
 		TreeMap<String /*format name*/, HashMap<String /*info field name ("desc", "supportedVariantTypes", ...*/, String /*info field value*/>> exportFormats = new TreeMap<String, HashMap<String, String>>();
 		for (IExportHandler exportHandler : AbstractIndividualOrientedExportHandler.getIndividualOrientedExportHandlers().values())
 		{
@@ -667,7 +600,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @param selectedVariantTypes the selected variant types
 	 * @param selectedSequences the selected sequences
 	 * @param selectedIndividuals the selected individuals
-	 * @param gtCode the gt code
+	 * @param gtPattern the gt code
 	 * @param genotypeQualityThreshold the genotype quality threshold
 	 * @param readDepthThreshold the read depth threshold
 	 * @param missingData the missing data
@@ -683,7 +616,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(variantCountURL)
-	protected @ResponseBody long countVariants(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") Integer genotypeQualityThreshold, @RequestParam("readDepthThreshold") Integer readDepthThreshold, @RequestParam("missingData") Double missingData, @RequestParam(value="minmaf", required=false) Float minmaf, @RequestParam(value="maxmaf", required=false) Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("processID") final String processID) throws Exception
+	protected @ResponseBody long countVariants(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtPattern") String gtPattern, @RequestParam("genotypeQualityThreshold") Integer genotypeQualityThreshold, @RequestParam("readDepthThreshold") Integer readDepthThreshold, @RequestParam("missingData") Double missingData, @RequestParam(value="minmaf", required=false) Float minmaf, @RequestParam(value="maxmaf", required=false) Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("processID") final String processID) throws Exception
 	{
 		final ProgressIndicator progress = new ProgressIndicator(processID.substring(1 + processID.indexOf('|')), new String[0]);
 		ProgressIndicator.registerProgressIndicator(progress);
@@ -691,7 +624,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, progress.getProcessId(), true /*empty it*/);
 		try
 		{
-			String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
+			String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtPattern, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
 
 			final MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 			DBCollection cachedCountcollection = mongoTemplate.getCollection(MgdbDao.COLLECTION_NAME_CACHED_COUNTS);
@@ -710,7 +643,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				long before = System.currentTimeMillis();
 
 				progress.addStep("Counting matching variants");
-				String sRegexOrAggregationOperator = genotypeCodeToQueryMap.get(gtCode);
+				String sRegexOrAggregationOperator = GenotypingDataQueryBuilder.getGenotypePatternToQueryMap().get(gtPattern);
 
 				List<String> alleleCountList = alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";"));
 
@@ -906,7 +839,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @param selectedVariantTypes the selected variant types
 	 * @param selectedSequences the selected sequences
 	 * @param selectedIndividuals the selected individuals
-	 * @param gtCode the gt code
+	 * @param gtPattern the gt code
 	 * @param genotypeQualityThreshold the genotype quality threshold
 	 * @param readDepthThreshold the read depth threshold
 	 * @param missingData the missing data
@@ -930,7 +863,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	/**
 	 *  This method build a list of variants in a temporary collection, that may be used later for browsing or exporting results
 	 */
-	protected @ResponseBody boolean findVariants(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam("minmaf") Float minmaf, @RequestParam("maxmaf") Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition,@RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("wantedFields") String wantedFields, @RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sortBy") String sortBy, @RequestParam("sortDir") String sortDir, @RequestParam("processID") String processID) throws Exception
+	protected @ResponseBody boolean findVariants(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtPattern") String gtPattern, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam("minmaf") Float minmaf, @RequestParam("maxmaf") Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition,@RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("wantedFields") String wantedFields, @RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sortBy") String sortBy, @RequestParam("sortDir") String sortDir, @RequestParam("processID") String processID) throws Exception
 	{
 		long before = System.currentTimeMillis();
 
@@ -949,7 +882,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		}
 
 		List<String> selectedSequenceList = actualSequenceSelection.length() == 0 ? null : Arrays.asList(actualSequenceSelection.split(";"));
-		String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
+		String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtPattern, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
 
 		final MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 		DBCollection cachedCountCollection = mongoTemplate.getCollection(MgdbDao.COLLECTION_NAME_CACHED_COUNTS);
@@ -960,7 +893,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		final DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, progress.getProcessId(), false);
 
-		String sRegexOrAggregationOperator = genotypeCodeToQueryMap.get(gtCode);
+		String sRegexOrAggregationOperator = GenotypingDataQueryBuilder.getGenotypePatternToQueryMap().get(gtPattern);
     	boolean fNeedToFilterOnGenotypingData = needToFilterOnGenotypingData(sModule, projId, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects);
 		final BasicDBList variantQueryDBList = buildVariantDataQuery(sModule, projId, selectedVariantTypes.length() == 0 ? null : Arrays.asList(selectedVariantTypes.split(";")), selectedSequenceList, minposition, maxposition, alleleCount.length() == 0 ? null : Arrays.asList(alleleCount.split(";")));
 
@@ -1125,7 +1058,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @param selectedVariantTypes the selected variant types
 	 * @param selectedSequences the selected sequences
 	 * @param selectedIndividuals the selected individuals
-	 * @param gtCode the gt code
+	 * @param gtPattern the gt code
 	 * @param genotypeQualityThreshold the genotype quality threshold
 	 * @param readDepthThreshold the read depth threshold
 	 * @param missingData the missing data
@@ -1149,12 +1082,12 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	/**
 	 *  This method returns a list of variants from the current selection
 	 */
-	protected @ResponseBody ArrayList<Comparable[]> listVariants(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam("minmaf") Float minmaf, @RequestParam("maxmaf") Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition,@RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("wantedFields") String wantedFields, @RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sortBy") String sortBy, @RequestParam("sortDir") String sortDir, @RequestParam("processID") String processID) throws Exception
+	protected @ResponseBody ArrayList<Comparable[]> listVariants(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtPattern") String gtPattern, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam("minmaf") Float minmaf, @RequestParam("maxmaf") Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition,@RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("wantedFields") String wantedFields, @RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sortBy") String sortBy, @RequestParam("sortDir") String sortDir, @RequestParam("processID") String processID) throws Exception
 	{
 		String[] usedFields = wantedFields.split(";");
 
 		String token = processID.substring(1 + processID.indexOf('|'));
-		String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
+		String queryKey = getQueryKey(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtPattern, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects);
 		MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 		DBCollection cachedCountcollection = mongoTemplate.getCollection(MgdbDao.COLLECTION_NAME_CACHED_COUNTS);
 //		cachedCountcollection.drop();
@@ -1396,7 +1329,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @param selectedVariantTypes the selected variant types
 	 * @param selectedSequences the selected sequences
 	 * @param selectedIndividuals the selected individuals
-	 * @param gtCode the gt code
+	 * @param gtPattern the gt code
 	 * @param genotypeQualityThreshold the genotype quality threshold
 	 * @param readDepthThreshold the read depth threshold
 	 * @param missingData the missing data
@@ -1410,7 +1343,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(variantExportDataURL)
-	protected void exportVariants(HttpServletRequest request, HttpServletResponse response, @RequestParam("module") String sModule, @RequestParam("keepExportOnServer") boolean fKeepExportOnServer, @RequestParam("exportFormat") String sExportFormat, @RequestParam("exportID") String exportID, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam(value="individuals", required=false) String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam(value="minmaf", required=false) Float minmaf, @RequestParam(value="maxmaf", required=false) Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects) throws Exception
+	protected void exportVariants(HttpServletRequest request, HttpServletResponse response, @RequestParam("module") String sModule, @RequestParam("keepExportOnServer") boolean fKeepExportOnServer, @RequestParam("exportFormat") String sExportFormat, @RequestParam("exportID") String exportID, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam(value="individuals", required=false) String selectedIndividuals, @RequestParam("gtPattern") String gtPattern, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam(value="minmaf", required=false) Float minmaf, @RequestParam(value="maxmaf", required=false) Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects) throws Exception
 	{
 //		exportID = URLDecoder.decode(exportID, "UTF-8");
 		String token = exportID.substring(1 + exportID.indexOf('|'));
@@ -1427,7 +1360,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		List<String> selectedIndividualList = selectedIndividuals.length() == 0 ? getIndividualsInDbOrder(sModule, projId) /* no selection means all selected */ : Arrays.asList(selectedIndividuals.split(";"));
 
-		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
+		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtPattern, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
 		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
 		long nTempVarCount = mongoTemplate.count(new Query(), tmpVarColl.getName());
 		boolean fWorkingOnFullDataset = mongoTemplate.count(null, VariantData.class) == count;
@@ -1737,7 +1670,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @param selectedVariantTypes the selected variant types
 	 * @param selectedSequences the selected sequences
 	 * @param selectedIndividuals the selected individuals
-	 * @param gtCode the gt code
+	 * @param gtPattern the gt code
 	 * @param genotypeQualityThreshold the genotype quality threshold
 	 * @param readDepthThreshold the read depth threshold
 	 * @param missingData the missing data
@@ -1751,9 +1684,9 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @return the query key
 	 * @throws Exception the exception
 	 */
-	private String getQueryKey(HttpServletRequest request, String sModule, int projId, String selectedVariantTypes, String selectedSequences, String selectedIndividuals, String gtCode, int genotypeQualityThreshold, int readDepthThreshold, double missingData, Float minmaf, Float maxmaf, Long minposition, Long maxposition, String alleleCount, String geneName, String variantEffects) throws Exception
+	private String getQueryKey(HttpServletRequest request, String sModule, int projId, String selectedVariantTypes, String selectedSequences, String selectedIndividuals, String gtPattern, int genotypeQualityThreshold, int readDepthThreshold, double missingData, Float minmaf, Float maxmaf, Long minposition, Long maxposition, String alleleCount, String geneName, String variantEffects) throws Exception
 	{
-		String queryKey = projId + ":" + selectedIndividuals + ":" + gtCode + ":" + selectedVariantTypes + ":" + selectedSequences + ":" + genotypeQualityThreshold + ":" + readDepthThreshold + ":" + missingData + ":" + minmaf + ":" + maxmaf + ":" + (minposition == null ? "" : minposition) + ":" + (maxposition == null ? "" : maxposition) + ":" + alleleCount + ":" + geneName + ":" + variantEffects;
+		String queryKey = projId + ":" + selectedIndividuals + ":" + gtPattern + ":" + selectedVariantTypes + ":" + selectedSequences + ":" + genotypeQualityThreshold + ":" + readDepthThreshold + ":" + missingData + ":" + minmaf + ":" + maxmaf + ":" + (minposition == null ? "" : minposition) + ":" + (maxposition == null ? "" : maxposition) + ":" + alleleCount + ":" + geneName + ":" + variantEffects;
 		String sequenceQK = getSequenceFilterQueryKey(request, sModule);
 		if (sequenceQK != null)
 			queryKey += ":seq=[" + sequenceQK + "]";
@@ -1785,7 +1718,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @param selectedVariantTypes the selected variant types
 	 * @param selectedSequences the selected sequences
 	 * @param selectedIndividuals the selected individuals
-	 * @param gtCode the gt code
+	 * @param gtPattern the genotype pattern
 	 * @param genotypeQualityThreshold the genotype quality threshold
 	 * @param readDepthThreshold the read depth threshold
 	 * @param missingData the missing data
@@ -1806,7 +1739,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 * @throws Exception the exception
 	 */
 	@RequestMapping(selectionDensityDataURL)
-	protected @ResponseBody Map<Long, Long> selectionDensity(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtCode") String gtCode, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam("minmaf") Float minmaf, @RequestParam("maxmaf") Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("processID") String processID, @RequestParam("displayedSequence") String displayedSequence, @RequestParam(required=false, value="displayedRangeMin") Long displayedRangeMin, @RequestParam(required=false, value="displayedRangeMax") Long displayedRangeMax, @RequestParam(required=false, value="displayedRangeIntervalCount") final Integer displayedRangeIntervalCount, @RequestParam(required=false, value="displayedVariantType") String displayedVariantType) throws Exception
+	protected @ResponseBody Map<Long, Long> selectionDensity(HttpServletRequest request, @RequestParam("module") String sModule, @RequestParam("project") int projId, @RequestParam("variantTypes") String selectedVariantTypes, @RequestParam("sequences") String selectedSequences, @RequestParam("individuals") String selectedIndividuals, @RequestParam("gtPattern") String gtPattern, @RequestParam("genotypeQualityThreshold") int genotypeQualityThreshold, @RequestParam("readDepthThreshold") int readDepthThreshold, @RequestParam("missingData") double missingData, @RequestParam("minmaf") Float minmaf, @RequestParam("maxmaf") Float maxmaf, @RequestParam("minposition") Long minposition, @RequestParam("maxposition") Long maxposition, @RequestParam("alleleCount") String alleleCount, @RequestParam("geneName") String geneName, @RequestParam("variantEffects") String variantEffects, @RequestParam("processID") String processID, @RequestParam("displayedSequence") String displayedSequence, @RequestParam(required=false, value="displayedRangeMin") Long displayedRangeMin, @RequestParam(required=false, value="displayedRangeMax") Long displayedRangeMax, @RequestParam(required=false, value="displayedRangeIntervalCount") final Integer displayedRangeIntervalCount, @RequestParam(required=false, value="displayedVariantType") String displayedVariantType) throws Exception
 	{
 		long before = System.currentTimeMillis();
 
@@ -1817,7 +1750,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 
 		final MongoTemplate mongoTemplate = MongoTemplateManager.get(sModule);
 
-		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtCode, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
+		long count = countVariants(request, sModule, projId, selectedVariantTypes, selectedSequences, selectedIndividuals, gtPattern, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, minposition, maxposition, alleleCount, geneName, variantEffects, "" /* if we pass exportID then the progress indicator is going to be replaced by another, and we don't need it for counting since we cache count values */);
 		DBCollection tmpVarColl = getTemporaryVariantCollection(sModule, token, false);
 //		boolean fStillGotUnwantedTempVariants = count < tmpVarColl.count();
 		long nTempVarCount = mongoTemplate.count(new Query(), tmpVarColl.getName());
