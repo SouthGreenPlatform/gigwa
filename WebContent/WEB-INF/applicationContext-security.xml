@@ -24,6 +24,7 @@
 	  <secur:intercept-url pattern="^.*\/.*filt\/.*\.do\?.*module=.*(&amp;.*$|$)" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
 	  <secur:intercept-url pattern="^.*\/.*filt\/.*\.json(\?.*$|$)" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
 	  <secur:intercept-url pattern="^.*\/gigwa/genotypingDataImport\.json\?.*$" access="IS_AUTHENTICATED_ANONYMOUSLY,IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
+	  <secur:intercept-url pattern="^.*/private/.*\.do_.*$" access="IS_AUTHENTICATED_FULLY,IS_AUTHENTICATED_REMEMBERED" />
 
 	  <secur:form-login login-page="/Authentication.jsp" always-use-default-target="true" default-target-url="/gigwa/" />
 		<secur:access-denied-handler ref="gigwaAccessDeniedHandler" />
