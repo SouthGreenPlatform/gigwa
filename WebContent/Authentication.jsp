@@ -29,8 +29,21 @@
 	<title>Authentication</title>
 	<script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 	<script language='javascript'>
-		if (window.name == "mainFrame")
-			parent.location.href = location.href;
+	var currentWindow = this;
+	while (currentWindow != top)
+	{
+		try
+		{
+ 			currentWindow.parent.document;	// accessing this throws an exception if Gigwa is running in a frame
+			currentWindow = currentWindow.parent;
+		}
+		catch(e)
+		{
+			break;
+		}
+	}
+	if (currentWindow != this)
+		currentWindow.location.href = location.href;
 	</script>
 </head>
 
