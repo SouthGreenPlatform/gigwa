@@ -129,7 +129,7 @@ public class TokenManager extends AbstractTokenManager {
         {	// database is not public
     		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null;
     		boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
-            if (fAdminUser || (fAuthentifiedUser && (userDao.getCustomRolesByModuleAndEntityType(authentication.getAuthorities()).get(module) != null || userDao.getOwnedEntitiesByModuleAndType(authentication.getAuthorities()).get(module) != null)))
+            if (fAdminUser || (fAuthentifiedUser && (userDao.getCustomRolesByModuleAndEntityType(authentication.getAuthorities()).get(module) != null || userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities()).get(module) != null)))
                 hasAccess = true;
         }
         return hasAccess;
@@ -163,7 +163,7 @@ public class TokenManager extends AbstractTokenManager {
     		boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null;
     		boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
     		Collection<String> writableEntityTypes = userDao.getWritableEntityTypesByModule(authentication.getAuthorities()).get(module);
-            if (fAdminUser || (fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)) || userDao.getOwnedEntitiesByModuleAndType(authentication.getAuthorities()).get(module) != null)))
+            if (fAdminUser || (fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)) || userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities()).get(module) != null)))
                 hasAccess = true;
         }
         return hasAccess;
@@ -211,7 +211,7 @@ public class TokenManager extends AbstractTokenManager {
     public Collection<String> listReadableDBs(Authentication authentication)
     {
     	Map<String, Map<String, Map<String, Collection<Comparable>>>> customRolesByModuleAndEntityType = userDao.getCustomRolesByModuleAndEntityType(authentication.getAuthorities());
-    	Map<String, Map<String, Collection<Comparable>>> ownedEntitiesByModuleAndType = userDao.getOwnedEntitiesByModuleAndType(authentication.getAuthorities());
+    	Map<String, Map<String, Collection<Comparable>>> managedEntitiesByModuleAndType = userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities());
 		Collection<String> modules = MongoTemplateManager.getAvailableModules(), authorizedModules = new ArrayList<String>();
 		for (String module : modules)
 		{
@@ -219,7 +219,7 @@ public class TokenManager extends AbstractTokenManager {
 			boolean fPublicModule = MongoTemplateManager.isModulePublic(module);
 			boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null;
 			boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
-			boolean fAuthorizedUser = fAuthentifiedUser && (customRolesByModuleAndEntityType.get(module) != null || ownedEntitiesByModuleAndType.get(module) != null);
+			boolean fAuthorizedUser = fAuthentifiedUser && (customRolesByModuleAndEntityType.get(module) != null || managedEntitiesByModuleAndType.get(module) != null);
 			if (fAdminUser || (!fHiddenModule && (!fAuthentifiedUser || fAuthorizedUser || fPublicModule)))
 				authorizedModules.add(module);
 		}
@@ -264,14 +264,14 @@ public class TokenManager extends AbstractTokenManager {
     public Collection<String> listWritableDBs(Authentication authentication) {
 		Collection<String> modules = MongoTemplateManager.getAvailableModules(), authorizedModules = new ArrayList<String>();
 		Map<String, Collection<String>> writableEntityTypesByModule = userDao.getWritableEntityTypesByModule(authentication.getAuthorities());
-		Map<String, Map<String, Collection<Comparable>>> ownedEntitiesByModuleAndType = userDao.getOwnedEntitiesByModuleAndType(authentication.getAuthorities());
+		Map<String, Map<String, Collection<Comparable>>> managedEntitiesByModuleAndType = userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities());
 		for (String module : modules)
 		{
 			boolean fHiddenModule = MongoTemplateManager.isModuleHidden(module);
 			boolean fAuthentifiedUser = authentication != null && authentication.getAuthorities() != null;
 			boolean fAdminUser = fAuthentifiedUser && authentication.getAuthorities().contains(new GrantedAuthorityImpl(IRoleDefinition.ROLE_ADMIN));
 			Collection<String> writableEntityTypes = writableEntityTypesByModule.get(module);
-			boolean fAuthorizedUser = fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)) || ownedEntitiesByModuleAndType.get(module) != null);
+			boolean fAuthorizedUser = fAuthentifiedUser && ((writableEntityTypes != null && writableEntityTypes.contains(ENTITY_PROJECT)) || managedEntitiesByModuleAndType.get(module) != null);
 			if (fAdminUser || (!fHiddenModule && (!fAuthentifiedUser || fAuthorizedUser)))
 				authorizedModules.add(module);
 		}
@@ -310,11 +310,11 @@ public class TokenManager extends AbstractTokenManager {
 //			}
 //		}
 		
-		Map<String, Collection<Comparable>> ownedEntitesByType = userDao.getOwnedEntitiesByModuleAndType(authentication.getAuthorities()).get(sModule);
-		if (ownedEntitesByType != null)
+		Map<String, Collection<Comparable>> managedEntitesByType = userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities()).get(sModule);
+		if (managedEntitesByType != null)
 		{
-			Collection<Comparable> ownedProjects = ownedEntitesByType.get(ENTITY_PROJECT);
-			if (ownedProjects != null && ownedProjects.contains(projectId))
+			Collection<Comparable> managedProjects = managedEntitesByType.get(ENTITY_PROJECT);
+			if (managedProjects != null && managedProjects.contains(projectId))
 				return true;
 
 		}
@@ -358,11 +358,11 @@ public class TokenManager extends AbstractTokenManager {
 			}
 		}
 		
-		Map<String, Collection<Comparable>> ownedEntitesByType = userDao.getOwnedEntitiesByModuleAndType(authentication.getAuthorities()).get(sModule);
-		if (ownedEntitesByType != null)
+		Map<String, Collection<Comparable>> managedEntitesByType = userDao.getManagedEntitiesByModuleAndType(authentication.getAuthorities()).get(sModule);
+		if (managedEntitesByType != null)
 		{
-			Collection<Comparable> ownedProjects = ownedEntitesByType.get(ENTITY_PROJECT);
-			if (ownedProjects != null && ownedProjects.contains(projectId))
+			Collection<Comparable> managedProjects = managedEntitesByType.get(ENTITY_PROJECT);
+			if (managedProjects != null && managedProjects.contains(projectId))
 				return true;
 
 		}

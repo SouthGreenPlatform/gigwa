@@ -44,7 +44,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -300,37 +299,25 @@ public class GigwaController
 				final SecurityContext securityContext = SecurityContextHolder.getContext();
 				new Thread() {
 					public void run() {
-			            if (sBrapiMapDbId != null && sBrapiStudyDbId != null && dataFile.trim().toLowerCase().startsWith("http"))
-			                try
-			                {
-			                  new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile.trim(), sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
-			                }
-			                catch (Exception e)
-			                {
-				                LOG.error("Error importing " + dataFile + (e instanceof SocketTimeoutException ? " (server-side needs maxParameterCount set to -1 in server.xml)" : ""), e);
-				                progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
-				                if (!fDatasourceAlreadyExisted)
-				                {
-				                	MongoTemplateManager.removeDataSource(sNormalizedModule, true);
-				                	LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
-				                }
-			                }
-			              else
-			              {
-							Scanner scanner = null;
-							try
-							{
+						Scanner scanner = null;
+		                try
+		                {
+		                	Integer createdProjectId = null;
+		                	if (sBrapiMapDbId != null && sBrapiStudyDbId != null && dataFile.trim().toLowerCase().startsWith("http"))
+		                		createdProjectId = new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile.trim(), sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+				            else
+				            {
 								scanner = new Scanner(new File(trimmedDataFile.trim()));
 								if (scanner.hasNext())
 								{
 									String sLowerCaseFirstLine = scanner.next().toLowerCase();
 									if (sLowerCaseFirstLine.startsWith("rs#"))
-										new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										createdProjectId = new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 									else if (trimmedDataFile.toLowerCase().endsWith(".ped"))
 									{
 										File mapFile= new File(trimmedDataFile.substring(0, trimmedDataFile.length() - 3) + "map");
 										if (mapFile.exists())
-											new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+											createdProjectId = new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 										else
 											throw new Exception("For imports in PLINK format, a .map file is expected to be found along the .bed file (with same names apart from the extension)");
 									}
@@ -342,7 +329,7 @@ public class GigwaController
 										else if (trimmedDataFile.toLowerCase().endsWith(".bcf"))
 											fIsBCF = true;	// we support BCF2 only
 										if (fIsBCF != null)
-											new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+											createdProjectId = new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 										else
 											throw new Exception("Unknown file format: " + trimmedDataFile);
 									}
@@ -350,25 +337,30 @@ public class GigwaController
 								else
 								{	// looks like a compressed file
 									BlockCompressedInputStream.assertNonDefectiveFile(new File(trimmedDataFile));
-									new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+									createdProjectId = new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 								}
-							}
-							catch (Exception e)
-							{
-								LOG.error("Error importing " + trimmedDataFile, e);
-								progress.setError("Error importing " + trimmedDataFile + ": " + ExceptionUtils.getStackTrace(e));
-								if (!fDatasourceAlreadyExisted)
-								{
-									MongoTemplateManager.removeDataSource(sNormalizedModule, true);
-									LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
-								}
-							}
-							finally
-							{
-								if (scanner != null)
-									scanner.close();
-							}
-			              }
+				            }
+		                	if (createdProjectId != null)
+		                	{	// a new project was created so we give this user management permissions on it
+								userDao.allowManagingEntity(sModule, AbstractTokenManager.ENTITY_PROJECT, createdProjectId, securityContext.getAuthentication().getName());
+								tokenManager.reloadUserPermissions(securityContext);
+		                	}
+		                }
+		                catch (Exception e)
+		                {
+			                LOG.error("Error importing " + dataFile + (e instanceof SocketTimeoutException ? " (server-side needs maxParameterCount set to -1 in server.xml)" : ""), e);
+			                progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
+			                if (!fDatasourceAlreadyExisted)
+			                {
+			                	MongoTemplateManager.removeDataSource(sNormalizedModule, true);
+			                	LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
+			                }
+		                }
+						finally
+						{
+							if (scanner != null)
+								scanner.close();
+						}
 					}
 				}.start();
 			}
