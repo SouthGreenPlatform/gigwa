@@ -368,7 +368,7 @@
 	        	opacity:80,
 	        	overlayCss:{backgroundColor:"#111"}
 	        });
-	        $("#variantInfoFrame").attr('src', "<c:url value="<%=AbstractVariantController.variantDetailsURL%>" />?module=${param.module}&project=" + $('#project').val() + "&variantId=" + variantId + "&individuals=" + selectedIndividuals + "&genotypeQualityThreshold=" + $('#genotypeQualityThreshold').val() + "&readDepthThreshold=" + $('#readDepthThreshold').val());
+	        $("#variantInfoFrame").attr('src', "<c:url value="<%=AbstractVariantController.variantDetailsURL%>" />?module=${param.module}&project=" + $('#project').val() + "&variantId=" + encodeURIComponent(variantId) + "&individuals=" + selectedIndividuals + "&genotypeQualityThreshold=" + $('#genotypeQualityThreshold').val() + "&readDepthThreshold=" + $('#readDepthThreshold').val());
 		}
 		
 		function loadSequenceList(evenIfBig)
