@@ -39,12 +39,6 @@
 		    <version>3.2.0</version>
 		</dependency>
 
-		<dependency> 
-		  <groupId>fr.cirad</groupId>
-		  <artifactId>BrapiImpl</artifactId>
-		  <version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
 		<dependency>
 			<groupId>fr.cirad</groupId>
 			<artifactId>role_manager</artifactId>

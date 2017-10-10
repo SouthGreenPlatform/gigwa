@@ -53,13 +53,5 @@
 	<mongo:mongo-client host="127.0.0.1" port="27017" id="localMongoHost">
 		<mongo:client-options write-concern="NORMAL" />
 	</mongo:mongo-client>
-	
-	<mongo:mongo-client host="127.0.0.1" port="27018" id="localMongoHostV2">
-		<mongo:client-options write-concern="NORMAL" />
-	</mongo:mongo-client>
-	<bean id="localMongoHostV2Credentials" class="org.springframework.data.authentication.UserCredentials">
-	    <constructor-arg name="username" value="gigwa" />
-	    <constructor-arg name="password" value="91936" />
-	</bean>
 
 </beans>

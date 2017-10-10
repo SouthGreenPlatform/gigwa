@@ -18,7 +18,6 @@
  */
 package fr.cirad.tools.security;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -38,12 +37,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
 
 import fr.cirad.security.ReloadableInMemoryDaoImpl;
 import fr.cirad.security.base.IRoleDefinition;
@@ -403,7 +400,7 @@ public class TokenManager extends AbstractTokenManager {
 	}
 	
     @Override
-    public String createAndAttachToken(String username, String password) throws IllegalArgumentException, IOException
+    public String createAndAttachToken(String username, String password) throws IllegalArgumentException, UnsupportedEncodingException
     {
     	LOG.debug("createAndAttachToken called");
     	boolean fLoginAttempt = username != null && username.length() > 0;
