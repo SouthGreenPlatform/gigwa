@@ -6,9 +6,6 @@
         <dependent-module archiveName="BrapiImpl-0.0.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/BrapiImpl/BrapiImpl">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="role_manager-0.1.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/role_manager/role_manager">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
         <dependent-module archiveName="mgdb-1.2-RELEASE.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/mgdb/mgdb">
             <dependency-type>uses</dependency-type>
         </dependent-module>
