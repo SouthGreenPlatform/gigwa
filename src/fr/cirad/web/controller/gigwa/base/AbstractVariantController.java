@@ -76,6 +76,7 @@ import com.mongodb.DBObject;
 import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
+import fr.cirad.controllerServiceInterface.ServiceInterface;
 import fr.cirad.mgdb.exporting.IExportHandler;
 import fr.cirad.mgdb.exporting.individualoriented.AbstractIndividualOrientedExportHandler;
 import fr.cirad.mgdb.exporting.markeroriented.AbstractMarkerOrientedExportHandler;
@@ -89,13 +90,15 @@ import fr.cirad.mgdb.model.mongo.subtypes.ReferencePosition;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleGenotype;
 import fr.cirad.mgdb.model.mongo.subtypes.SampleId;
 import fr.cirad.mgdb.model.mongodao.MgdbDao;
-import fr.cirad.tools.AlphaNumericStringComparator;
+import fr.cirad.models.GigwaSearchVariantsExportRequest;
+import fr.cirad.tools.AlphaNumericComparator;
 import fr.cirad.tools.AppConfig;
 import fr.cirad.tools.Helper;
 import fr.cirad.tools.ProgressIndicator;
 import fr.cirad.tools.mgdb.GenotypingDataQueryBuilder;
 import fr.cirad.tools.mongo.MongoTemplateManager;
 import fr.cirad.tools.security.TokenManager;
+import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
@@ -375,7 +378,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	protected @ResponseBody List<String> listIndividualsInAlphaNumericOrder(@RequestParam("module") String sModule, @RequestParam("project") int project) throws Exception
 	{
 		List<String> indArray = new ArrayList(getIndividualsInDbOrder(sModule, project));
-		Collections.sort(indArray, new AlphaNumericStringComparator());
+		Collections.sort(indArray, new AlphaNumericComparator());
 		return indArray;
 	}
 
@@ -392,7 +395,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	{
 		List<String> variantTypesArray = new ArrayList(getProjectVariantTypes(sModule, projId));
 		variantTypesArray.remove(null);	// just in case
-		Collections.sort(variantTypesArray, new AlphaNumericStringComparator());
+		Collections.sort(variantTypesArray, new AlphaNumericComparator());
 		return variantTypesArray;
 	}
 
@@ -415,7 +418,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			result = (List<String>) CollectionUtils.intersection(result, externallySelectedSequences);
 
 		if (result != null)
-			Collections.sort(result, new AlphaNumericStringComparator());
+			Collections.sort(result, new AlphaNumericComparator());
 		return result;
 	}
 
@@ -720,7 +723,30 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			        if (selectedIndividualList == null)
 			        	selectedIndividualList = getIndividualsInDbOrder(sModule, projId);
 
-			        GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(sModule, projId, tmpVarColl, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects, selectedIndividualList, getProjectEffectAnnotations(sModule, projId), new ArrayList<String>());
+	            	GigwaSearchVariantsExportRequest gsvr = new GigwaSearchVariantsExportRequest();
+	            	gsvr.setAlleleCount(alleleCount);
+	            	if (minposition != null)
+	            		gsvr.setStart(minposition);
+	            	if (maxposition != null)
+	            		gsvr.setEnd(maxposition);
+	            	gsvr.setGeneName(geneName);
+	            	gsvr.setReferenceName(selectedSequences);
+	            	gsvr.setSelectedVariantTypes(selectedVariantTypes);
+	            	gsvr.setVariantEffect(variantEffects);
+	            	gsvr.setVariantSetId(sModule + ServiceInterface.ID_SEPARATOR + projId);
+	            	
+	            	gsvr.setMissingData(missingData);
+	            	gsvr.setMinmaf(minmaf);
+	            	gsvr.setMaxmaf(maxmaf);
+	            	gsvr.setGtPattern(gtPattern);	            	
+	    			
+	            	HashMap<String, Integer> annotationFieldThresholds = new HashMap<String, Integer>();
+	            	annotationFieldThresholds.put(VCFConstants.GENOTYPE_QUALITY_KEY, genotypeQualityThreshold);
+	            	annotationFieldThresholds.put(VCFConstants.DEPTH_KEY, readDepthThreshold);
+	            	gsvr.setAnnotationFieldThresholds(annotationFieldThresholds);
+	            	gsvr.setCallSetIds(selectedIndividualList);
+	                
+			        GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(gsvr, tmpVarColl);
 			        try
 			        {
 						final int nChunkCount = genotypingDataQueryBuilder.getNumberOfQueries();
@@ -928,7 +954,30 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			final ConcurrentLinkedQueue<Thread> queryThreadsToWaitFor = new ConcurrentLinkedQueue<Thread>(), removalThreadsToWaitFor = new ConcurrentLinkedQueue<Thread>();
 			final AtomicInteger finishedThreadCount = new AtomicInteger(0);
 			final ConcurrentSkipListSet<Comparable> allVariantsThatPassRunFilter = new ConcurrentSkipListSet<Comparable>();
-			final GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(sModule, projId, tmpVarColl, sRegexOrAggregationOperator, genotypeQualityThreshold, readDepthThreshold, missingData, minmaf, maxmaf, geneName, variantEffects, selectedIndividuals == null || selectedIndividuals.length() == 0 ? getIndividualsInDbOrder(sModule, projId) : Arrays.asList(selectedIndividuals.split(";")), getProjectEffectAnnotations(sModule, projId), new ArrayList<String>());
+			
+        	GigwaSearchVariantsExportRequest gsvr = new GigwaSearchVariantsExportRequest();
+        	gsvr.setAlleleCount(alleleCount);
+        	if (minposition != null)
+        		gsvr.setStart(minposition);
+        	if (maxposition != null)
+        		gsvr.setEnd(maxposition);
+        	gsvr.setGeneName(geneName);
+        	gsvr.setReferenceName(selectedSequences);
+        	gsvr.setSelectedVariantTypes(selectedVariantTypes);
+        	gsvr.setVariantEffect(variantEffects);
+        	gsvr.setVariantSetId(sModule + ServiceInterface.ID_SEPARATOR + projId);
+        	
+        	gsvr.setMissingData(missingData);
+        	gsvr.setMinmaf(minmaf);
+        	gsvr.setMaxmaf(maxmaf);
+        	gsvr.setGtPattern(gtPattern);
+        	HashMap<String, Integer> annotationFieldThresholds = new HashMap<String, Integer>();
+        	annotationFieldThresholds.put(VCFConstants.GENOTYPE_QUALITY_KEY, genotypeQualityThreshold);
+        	annotationFieldThresholds.put(VCFConstants.DEPTH_KEY, readDepthThreshold);
+        	gsvr.setAnnotationFieldThresholds(annotationFieldThresholds);
+        	gsvr.setCallSetIds( selectedIndividuals == null || selectedIndividuals.length() == 0 ? getIndividualsInDbOrder(sModule, projId) : Arrays.asList(selectedIndividuals.split(";")));
+        	
+			final GenotypingDataQueryBuilder genotypingDataQueryBuilder = new GenotypingDataQueryBuilder(gsvr, tmpVarColl);
 			genotypingDataQueryBuilder.keepTrackOfPreFilters(!variantQueryDBList.isEmpty());
 	        try
 	        {
@@ -1246,8 +1295,8 @@ public abstract class AbstractVariantController implements IGigwaViewController
 		mav.addObject("variantType", var.getType());
 		mav.addObject("refPos", var.getReferencePosition());
 
-		Map<String /* run */, Map<String /* individual */, List<Comparable /* cell value */>>> dataByRun = new TreeMap<String, Map<String, List<Comparable>>>(new AlphaNumericStringComparator());
-		Map<String /* run */, Map<String /* info field */, Object>> additionalInfoByRun = new TreeMap<String, Map<String, Object>>(new AlphaNumericStringComparator());
+		Map<String /* run */, Map<String /* individual */, List<Comparable /* cell value */>>> dataByRun = new TreeMap<String, Map<String, List<Comparable>>>(new AlphaNumericComparator());
+		Map<String /* run */, Map<String /* info field */, Object>> additionalInfoByRun = new TreeMap<String, Map<String, Object>>(new AlphaNumericComparator());
 		Map<String /* run */, Map<String /* info field */, VCFInfoHeaderLine>> additionalInfoDescByRun = new HashMap<String, Map<String, VCFInfoHeaderLine>>();
 		List<String> headerCols = new ArrayList<String>();
 		List<String> headerColDescs = new ArrayList<String>();
@@ -1267,7 +1316,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 				vcfHeader = DBVCFHeader.fromDBObject(headerCursor.next());
 				headerCursor.close();
 			}
-			Map<String /* individual */, List<Comparable /* cell value */>> genotypeRows = new TreeMap<String, List<Comparable>>(new AlphaNumericStringComparator());
+			Map<String /* individual */, List<Comparable /* cell value */>> genotypeRows = new TreeMap<String, List<Comparable>>(new AlphaNumericComparator());
 
 			additionalInfoByRun.put(run.getRunName(), run.getAdditionalInfo());
 			if (vcfHeader != null)
@@ -1428,11 +1477,15 @@ public abstract class AbstractVariantController implements IGigwaViewController
 //				response.getOutputStream().flush();
 //			}
 			
+        	HashMap<String, Integer> annotationFieldThresholds = new HashMap<String, Integer>();
+        	annotationFieldThresholds.put(VCFConstants.GENOTYPE_QUALITY_KEY, genotypeQualityThreshold);
+        	annotationFieldThresholds.put(VCFConstants.DEPTH_KEY, readDepthThreshold);
+        	
 			if (individualOrientedExportHandler != null)
 			{
 				progress.addStep("Reading and re-organizing genotypes"); // initial step will consist in organizing genotypes by individual rather than by marker
 				progress.moveToNextStep();	// done with identifying variants
-				LinkedHashMap<String, File> exportFiles = individualOrientedExportHandler.createExportFiles(sModule, markerCursor.copy(), sampleIDs, token, genotypeQualityThreshold, readDepthThreshold, progress);
+				TreeMap<String, File> exportFiles = individualOrientedExportHandler.createExportFiles(sModule, markerCursor.copy(), sampleIDs, new ArrayList<SampleId>(), token, annotationFieldThresholds, new HashMap<String, Integer>(), progress);
 				if (!progress.hasAborted()) {
 					for (String step : individualOrientedExportHandler.getStepList())
 						progress.addStep(step);
@@ -1446,7 +1499,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 					progress.addStep(step);
 				progress.moveToNextStep();	// done with identifying variants
 
-				markerOrientedExportHandler.exportData(os, sModule, sampleIDs, progress, markerCursor, null, genotypeQualityThreshold, readDepthThreshold, null);
+				markerOrientedExportHandler.exportData(os, sModule, sampleIDs, new ArrayList<SampleId>(), progress, markerCursor, null, annotationFieldThresholds, new HashMap<String, Integer>(), null);
 				LOG.debug("done with exportData");
 			}
 			else
@@ -1635,7 +1688,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			return listSequences(request, sModule, projId);	// working on full dataset
 
 		List<String> distinctSequences = tmpVarColl.distinct(VariantData.FIELDNAME_REFERENCE_POSITION + "." + ReferencePosition.FIELDNAME_SEQUENCE);
-		TreeSet<String> sortedResult = new TreeSet<String>(new AlphaNumericStringComparator());
+		TreeSet<String> sortedResult = new TreeSet<String>(new AlphaNumericComparator());
 		sortedResult.addAll(distinctSequences);
 		return sortedResult;
 	}

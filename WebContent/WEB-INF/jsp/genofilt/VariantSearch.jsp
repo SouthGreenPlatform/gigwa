@@ -452,7 +452,6 @@
 				loadSequenceList();
 
 				$.getJSON('<c:url value="<%=AbstractVariantController.gotGQFieldURL%>" />', { module:'${param.module}',project:$('#project').val() }, function(jsonResult) {
-					
 					$("#filterOnGQandDP div").toggle(jsonResult);
 				}).error(function(xhr, ajaxOptions, thrownError) {
 					handleJsonError(xhr, ajaxOptions, thrownError);
@@ -837,12 +836,12 @@
 
 						<div id="filterOnGQandDP" style="height:50px;">
 							<div style="margin-top:5px;">
-								<b>Minimum per-sample genotype quality:</b> <input type="text" maxlength="4" style="width:16px;" id="genotypeQualityThreshold" value="1"
-									onchange="dirtyForm(); if(!(this.value>1))this.value='1';" onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
+								<b>Minimum per-sample genotype quality:</b> <input type="text" maxlength="4" style="width:16px;" id="genotypeQualityThreshold" value="0"
+									onchange="dirtyForm(); if ($(this).val().length() == 0) $(this).val(0);" onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
 							</div>
 
 							<div style="margin-top:5px;">
-								<b>Minimum per-sample read depth:</b> <input type="text" maxlength="4" style="width:16px;" id="readDepthThreshold" value="1" onchange="dirtyForm(); if(!(this.value>1))this.value='1';"
+								<b>Minimum per-sample read depth:</b> <input type="text" maxlength="4" style="width:16px;" id="readDepthThreshold" value="0" onchange="dirtyForm(); if ($(this).val().length() == 0) $(this).val(0);"
 									onkeypress="return isNumberKey(event);" onfocus="this.select();" /> (other data seen as missing)
 							</div>
 						</div>
