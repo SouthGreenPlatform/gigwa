@@ -1485,7 +1485,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 			{
 				progress.addStep("Reading and re-organizing genotypes"); // initial step will consist in organizing genotypes by individual rather than by marker
 				progress.moveToNextStep();	// done with identifying variants
-				TreeMap<String, File> exportFiles = individualOrientedExportHandler.createExportFiles(sModule, markerCursor.copy(), sampleIDs, new ArrayList<SampleId>(), token, annotationFieldThresholds, new HashMap<String, Integer>(), progress);
+				TreeMap<String, File> exportFiles = individualOrientedExportHandler.createExportFiles(sModule, markerCursor.copy(), sampleIDs, new ArrayList<SampleId>(), token, annotationFieldThresholds, new HashMap<String, Integer>(), project.getSampleIdToIndividualMap(selectedIndividualList), progress);
 				if (!progress.hasAborted()) {
 					for (String step : individualOrientedExportHandler.getStepList())
 						progress.addStep(step);
@@ -1499,7 +1499,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 					progress.addStep(step);
 				progress.moveToNextStep();	// done with identifying variants
 
-				markerOrientedExportHandler.exportData(os, sModule, sampleIDs, new ArrayList<SampleId>(), progress, markerCursor, null, annotationFieldThresholds, new HashMap<String, Integer>(), null);
+				markerOrientedExportHandler.exportData(os, sModule, sampleIDs, new ArrayList<SampleId>(), progress, markerCursor, null, annotationFieldThresholds, new HashMap<String, Integer>(), project.getSampleIdToIndividualMap(selectedIndividualList), null);
 				LOG.debug("done with exportData");
 			}
 			else
