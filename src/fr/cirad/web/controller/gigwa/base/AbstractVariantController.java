@@ -1756,7 +1756,7 @@ public abstract class AbstractVariantController implements IGigwaViewController
 	 */
 	private DBCollection getTemporaryVariantCollection(String sModule, String processID, boolean fEmptyItBeforeHand)
 	{
-		DBCollection coll = MongoTemplateManager.get(sModule).getCollection(MongoTemplateManager.TEMP_EXPORT_PREFIX + Helper.convertToMD5(processID));
+		DBCollection coll = MongoTemplateManager.get(sModule).getCollection(MongoTemplateManager.TEMP_COLL_PREFIX + Helper.convertToMD5(processID));
 		if (fEmptyItBeforeHand)
 			coll.drop();
 		return coll;
