@@ -135,8 +135,8 @@
 				return;
 			}
 			
-			var brapiParameters = {studyDbId:$("select#brapiStudyList").val(), mapDbId:$("select#brapiMapList").val()};
-		}			
+			brapiParameters = {studyDbId:$("select#brapiStudyList").val(), mapDbId:$("select#brapiMapList").val()};
+		}
 		
 		var host = $("select#host").val();
 		var module = $("input[name=module]").val().trim();
