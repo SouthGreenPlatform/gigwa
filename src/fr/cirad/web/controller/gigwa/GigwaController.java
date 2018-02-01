@@ -270,14 +270,14 @@ public class GigwaController
 
 		if (fAllowedToImport)
 		{	// allowed to continue
-			final String sFinalModule = fIsCalledFromWithinLocalInstance ? sNormalizedModule : ("*" + sNormalizedModule + "*");	// remote users (invoking import directly via a URL) are only allowed to create public-and-hidden databases (i.e. for their own use)
+//			boolean fPublicAndHidden = !fIsCalledFromWithinLocalInstance;	// remote users (invoking import directly via a URL) are only allowed to create public-and-hidden databases (i.e. for their own use)
 			if (!fDatasourceExists)
 				try
 				{	// create it
 					if (sHost == null)
 						throw new Exception("No host was specified!");
 
-					MongoTemplateManager.createDataSource(sFinalModule, sHost, fIsCalledFromWithinLocalInstance ? null : System.currentTimeMillis() + 1000*60*60*24 /* 1 day */);
+					MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.CREATE, sNormalizedModule, !fIsCalledFromWithinLocalInstance, !fIsCalledFromWithinLocalInstance, sHost, fIsCalledFromWithinLocalInstance ? null : System.currentTimeMillis() + 1000*60*60*24 /* 1 day */);
 					fDatasourceExists = true;
 				}
 				catch (Exception e)
@@ -350,11 +350,8 @@ public class GigwaController
 		                {
 			                LOG.error("Error importing " + dataFile + (e instanceof SocketTimeoutException ? " (server-side needs maxParameterCount set to -1 in server.xml)" : ""), e);
 			                progress.setError("Error importing " + dataFile + ": " + ExceptionUtils.getStackTrace(e));
-			                if (!fDatasourceAlreadyExisted)
-			                {
-			                	MongoTemplateManager.removeDataSource(sNormalizedModule, true);
+			                if (!fDatasourceAlreadyExisted && MongoTemplateManager.removeDataSource(sNormalizedModule, true))
 			                	LOG.debug("Removed datasource " + sNormalizedModule + " subsequently to previous import error");
-			                }
 		                }
 						finally
 						{

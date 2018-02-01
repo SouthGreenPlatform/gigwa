@@ -53,4 +53,29 @@ public class GigwaModuleManager implements IModuleManager {
 				}		
 		return entitiesByModule;
 	}
+
+	@Override
+	public boolean isModuleHidden(String sModule) {
+		return MongoTemplateManager.isModuleHidden(sModule);
+	}
+
+	@Override
+	public boolean removeDataSource(String sModule, boolean fAlsoDropDatabase) {
+		return MongoTemplateManager.removeDataSource(sModule, fAlsoDropDatabase);
+	}
+
+	@Override
+	public boolean updateDataSource(String sModule, boolean fPublic, boolean fHidden) throws Exception {
+		return MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.UPDATE_STATUS, sModule, fPublic, fHidden, null, null);
+	}
+
+	@Override
+	public boolean createDataSource(String sModule, String sHost, Long expiryDate) throws Exception {
+		return MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.UPDATE_STATUS, sModule, false, false, sHost, expiryDate);
+	}
+	
+	@Override
+	public Collection<String> getHosts() {
+		return MongoTemplateManager.getHostNames();
+	}
 }
