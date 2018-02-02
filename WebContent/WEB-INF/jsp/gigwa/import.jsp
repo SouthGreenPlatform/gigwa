@@ -90,8 +90,6 @@
 	
 	function isValidNewName(newName)
 	{
-    	if (newName.trim().length == 0)
-    		return false;
 		for (var i=0; i<newName.length; i++)
 			if (!isValidCharForNewName(newName.charCodeAt(i)))
 				return false;
