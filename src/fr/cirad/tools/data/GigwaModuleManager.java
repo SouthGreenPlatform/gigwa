@@ -65,13 +65,13 @@ public class GigwaModuleManager implements IModuleManager {
 	}
 
 	@Override
-	public boolean updateDataSource(String sModule, boolean fPublic, boolean fHidden) throws Exception {
-		return MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.UPDATE_STATUS, sModule, fPublic, fHidden, null, null);
+	public boolean updateDataSource(String sModule, boolean fPublic, boolean fHidden, String sSpeciesName) throws Exception {
+		return MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.UPDATE_STATUS, sModule, fPublic, fHidden, null, sSpeciesName, null);
 	}
 
 	@Override
-	public boolean createDataSource(String sModule, String sHost, Long expiryDate) throws Exception {
-		return MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.UPDATE_STATUS, sModule, false, false, sHost, expiryDate);
+	public boolean createDataSource(String sModule, String sHost, String sSpeciesName, Long expiryDate) throws Exception {
+		return MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.CREATE, sModule, false, false, sHost, sSpeciesName, expiryDate);
 	}
 	
 	@Override

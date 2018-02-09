@@ -277,7 +277,7 @@ public class GigwaController
 					if (sHost == null)
 						throw new Exception("No host was specified!");
 
-					MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.CREATE, sNormalizedModule, !fIsCalledFromWithinLocalInstance, !fIsCalledFromWithinLocalInstance, sHost, fIsCalledFromWithinLocalInstance ? null : System.currentTimeMillis() + 1000*60*60*24 /* 1 day */);
+					MongoTemplateManager.saveOrUpdateDataSource(MongoTemplateManager.ModuleAction.CREATE, sNormalizedModule, !fIsCalledFromWithinLocalInstance, !fIsCalledFromWithinLocalInstance, sHost, null, fIsCalledFromWithinLocalInstance ? null : System.currentTimeMillis() + 1000*60*60*24 /* 1 day */);
 					fDatasourceExists = true;
 				}
 				catch (Exception e)
