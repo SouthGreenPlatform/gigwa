@@ -20,8 +20,8 @@
 
 <html>
     <head>
-		<link rel ="stylesheet" type="text/css" href="<c:url value="/css/main.css" />" title="style">
-		<script type="text/javascript" src="<c:url value="/js/jquery-1.8.2.min.js" />"></script>
+		<link rel ="stylesheet" type="text/css" href="css/role_manager.css" title="style">
+		<script type="text/javascript" src="<c:url value="/private/js/jquery-1.12.4.min.js" />"></script>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Error 500</title>
     </head>
