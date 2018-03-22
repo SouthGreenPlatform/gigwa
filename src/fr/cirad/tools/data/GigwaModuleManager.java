@@ -34,7 +34,6 @@ public class GigwaModuleManager implements IModuleManager {
 	
 	@Autowired TokenManager tokenManager;
 	
-	
 	@Override
 	public Collection<String> getModules(Boolean fTrueForPublicFalseForPrivateNullForBoth) {
 		if (fTrueForPublicFalseForPrivateNullForBoth == null)
@@ -45,17 +44,12 @@ public class GigwaModuleManager implements IModuleManager {
 	}
 
 	@Override
-	public Map<String, Map<Comparable, String>> getEntitiesByModule(String entityType)
-	{
-		return getEntitiesByModule(entityType, null);
-	}
-	
-	public Map<String, Map<Comparable, String>> getEntitiesByModule(String entityType, Boolean fTrueIfPublicFalseIfPrivateNullIfBoth)
+	public Map<String, Map<Comparable, String>> getEntitiesByModule(String entityType, Boolean fTrueIfPublicFalseIfPrivateNullIfAny)
 	{
 		Map<String, Map<Comparable, String>> entitiesByModule = new LinkedHashMap<String, Map<Comparable, String>>();
 		if ("project".equals(entityType))
 			for (String sModule : MongoTemplateManager.getAvailableModules())
-				if (fTrueIfPublicFalseIfPrivateNullIfBoth == null || (MongoTemplateManager.isModulePublic(sModule) == fTrueIfPublicFalseIfPrivateNullIfBoth))
+				if (fTrueIfPublicFalseIfPrivateNullIfAny == null || (MongoTemplateManager.isModulePublic(sModule) == fTrueIfPublicFalseIfPrivateNullIfAny))
 				{
 					Map<Comparable, String> moduleEntities = entitiesByModule.get(sModule);
 					if (moduleEntities == null)
@@ -161,5 +155,15 @@ public class GigwaModuleManager implements IModuleManager {
 			LOG.error("Not managing entities of type " + sEntityType);
 			return false;
 		}
+	}
+
+	@Override
+	public boolean doesEntityTypeSupportVisibility(String sModule, String sEntityType) {
+		return false;
+	}
+
+	@Override
+	public boolean setManagedEntityVisibility(String sModule, String sEntityType, Comparable entityId, boolean fPublic) throws Exception {
+		return false;
 	}
 }
