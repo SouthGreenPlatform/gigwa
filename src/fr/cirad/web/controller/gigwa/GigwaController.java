@@ -20,6 +20,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -307,17 +308,18 @@ public class GigwaController
 		                		createdProjectId = new BrapiImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, dataFile.trim(), sBrapiStudyDbId, sBrapiMapDbId, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 				            else
 				            {
-								scanner = new Scanner(new File(trimmedDataFile.trim()));
+				            	scanner = new Scanner(new File(trimmedDataFile));
+								URL fileUrl = new File(trimmedDataFile).toURI().toURL();
 								if (scanner.hasNext())
 								{
 									String sLowerCaseFirstLine = scanner.next().toLowerCase();
 									if (sLowerCaseFirstLine.startsWith("rs#"))
-										createdProjectId = new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+										createdProjectId = new HapMapImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, fileUrl, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 									else if (trimmedDataFile.toLowerCase().endsWith(".ped"))
 									{
 										File mapFile= new File(trimmedDataFile.substring(0, trimmedDataFile.length() - 3) + "map");
 										if (mapFile.exists())
-											createdProjectId = new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.getAbsolutePath(), trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+											createdProjectId = new PlinkImport(processId).importToMongo(sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, mapFile.toURI().toURL(), new File(trimmedDataFile), Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 										else
 											throw new Exception("For imports in PLINK format, a .map file is expected to be found along the .bed file (with same names apart from the extension)");
 									}
@@ -329,7 +331,7 @@ public class GigwaController
 										else if (trimmedDataFile.toLowerCase().endsWith(".bcf"))
 											fIsBCF = true;	// we support BCF2 only
 										if (fIsBCF != null)
-											createdProjectId = new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+											createdProjectId = new VcfImport(processId).importToMongo(fIsBCF, sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, fileUrl, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 										else
 											throw new Exception("Unknown file format: " + trimmedDataFile);
 									}
@@ -337,7 +339,7 @@ public class GigwaController
 								else
 								{	// looks like a compressed file
 									BlockCompressedInputStream.assertNonDefectiveFile(new File(trimmedDataFile));
-									createdProjectId = new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, trimmedDataFile, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
+									createdProjectId = new VcfImport(processId).importToMongo(trimmedDataFile.toLowerCase().endsWith(".bcf.gz"), sNormalizedModule, sProject, sRun, sTechnology == null ? "" : sTechnology, fileUrl, Boolean.TRUE.equals(fClearProjectData) ? 1 : 0);
 								}
 				            }
 		                	if (createdProjectId != null)
